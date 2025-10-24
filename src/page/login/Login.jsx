@@ -4,7 +4,8 @@ import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaIdBadge, FaCamera } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-// ✅ Yup validation to match backend requirement
+// ✅ Validation Schema — user can log in with:
+// (Email + Password) OR (Roll Number + Password) OR (Face Image)
 const validationSchema = Yup.object().test(
   "oneOfRequired",
   "Provide Email + Password, Roll Number + Password, or Face Image",
@@ -19,9 +20,10 @@ const validationSchema = Yup.object().test(
 
 const Login = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+    <div className="flex items-center justify-center min-h-screen bg-gray-light px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-card p-8">
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-center text-gray-dark mb-6">
           Login to Your Account
         </h2>
 
@@ -40,20 +42,20 @@ const Login = () => {
           }}
         >
           {({ setFieldValue }) => (
-            <Form className="space-y-4">
+            <Form className="space-y-5">
               {/* Email */}
               <div className="relative">
                 <Field
                   type="email"
                   name="email"
                   placeholder="Email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
-                <FaEnvelope className="absolute top-3 right-3 text-gray-400" />
+                <FaEnvelope className="absolute top-3 right-3 text-gray" />
                 <ErrorMessage
                   name="email"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
 
@@ -63,13 +65,13 @@ const Login = () => {
                   type="text"
                   name="rollNumber"
                   placeholder="Roll Number"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
-                <FaIdBadge className="absolute top-3 right-3 text-gray-400" />
+                <FaIdBadge className="absolute top-3 right-3 text-gray" />
                 <ErrorMessage
                   name="rollNumber"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
 
@@ -79,19 +81,19 @@ const Login = () => {
                   type="password"
                   name="password"
                   placeholder="Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
-                <FaLock className="absolute top-3 right-3 text-gray-400" />
+                <FaLock className="absolute top-3 right-3 text-gray" />
                 <ErrorMessage
                   name="password"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
 
               {/* Face Image Upload */}
               <div>
-                <label className="block text-gray-700 font-medium mb-1">
+                <label className="block text-gray-dark font-medium mb-1">
                   Or Login with Face
                 </label>
                 <input
@@ -101,13 +103,12 @@ const Login = () => {
                   onChange={(event) =>
                     setFieldValue("faceImage", event.currentTarget.files[0])
                   }
-                  className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full text-sm border border-gray rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
-                <FaCamera className="absolute hidden" />
                 <ErrorMessage
                   name="faceImage"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
 
@@ -115,7 +116,7 @@ const Login = () => {
               <div className="text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-indigo-600 text-sm hover:underline"
+                  className="text-primary text-sm hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -124,15 +125,15 @@ const Login = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition duration-300"
+                className="w-full py-2.5 text-white rounded-lg bg-primary hover:bg-primary-dark shadow-soft transition duration-300"
               >
                 Login
               </button>
 
               {/* Register Link */}
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-dark">
                 Don’t have an account?{" "}
-                <Link to="/register" className="text-indigo-600 hover:underline">
+                <Link to="/register" className="text-primary font-medium hover:underline">
                   Register
                 </Link>
               </p>

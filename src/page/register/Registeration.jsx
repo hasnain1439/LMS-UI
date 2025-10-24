@@ -4,7 +4,7 @@ import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
-const Registeration = () => {
+const Registration = () => {
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
@@ -13,7 +13,7 @@ const Registeration = () => {
       .min(8, "Password must be at least 8 characters")
       .matches(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-        "Password must contain at least one uppercase, one lowercase, one number, and one special character"
+        "Password must contain uppercase, lowercase, number & special character"
       )
       .required("Password is required"),
     role: Yup.string().required("Please select a role"),
@@ -21,10 +21,11 @@ const Registeration = () => {
   });
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-2xl">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Register Account
+    <div className="flex items-center justify-center min-h-screen bg-gray-light">
+      <div className="w-full max-w-lg p-8 bg-white rounded-2xl shadow-card">
+        {/* 🧾 Title */}
+        <h2 className="text-2xl font-bold text-center text-gray-dark mb-6">
+          Create Your Account
         </h2>
 
         <Formik
@@ -44,22 +45,22 @@ const Registeration = () => {
           }}
         >
           {({ setFieldValue }) => (
-            <Form className="space-y-4">
+            <Form className="space-y-5">
               {/* First & Last Name */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="sm:w-1/2 relative">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative sm:w-1/2">
                   <Field
                     type="text"
                     name="firstName"
                     placeholder="First Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                   />
+                  <FaUser className="absolute top-3 right-3 text-gray" />
                   <ErrorMessage
                     name="firstName"
                     component="p"
-                    className="text-red-500 text-sm mt-1"
+                    className="text-error text-sm mt-1"
                   />
-                  <FaUser className="absolute text-gray-400 top-3 right-3 sm:right-2" />
                 </div>
 
                 <div className="relative sm:w-1/2">
@@ -67,14 +68,14 @@ const Registeration = () => {
                     type="text"
                     name="lastName"
                     placeholder="Last Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                   />
+                  <FaUser className="absolute top-3 right-3 text-gray" />
                   <ErrorMessage
                     name="lastName"
                     component="p"
-                    className="text-red-500 text-sm mt-1"
+                    className="text-error text-sm mt-1"
                   />
-                  <FaUser className="absolute text-gray-400 top-3 right-3 sm:right-2" />
                 </div>
               </div>
 
@@ -83,15 +84,15 @@ const Registeration = () => {
                 <Field
                   type="email"
                   name="email"
-                  placeholder="Email address"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Email Address"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
+                <FaEnvelope className="absolute top-3 right-3 text-gray" />
                 <ErrorMessage
                   name="email"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
-                <FaEnvelope className="absolute text-gray-400 top-3 right-3" />
               </div>
 
               {/* Password */}
@@ -100,14 +101,14 @@ const Registeration = () => {
                   type="password"
                   name="password"
                   placeholder="Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
+                <FaLock className="absolute top-3 right-3 text-gray" />
                 <ErrorMessage
                   name="password"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
-                <FaLock className="absolute text-gray-400 top-3 right-3" />
               </div>
 
               {/* Role */}
@@ -115,7 +116,7 @@ const Registeration = () => {
                 <Field
                   as="select"
                   name="role"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
                 >
                   <option value="">Select Role</option>
                   <option value="student">Student</option>
@@ -124,13 +125,13 @@ const Registeration = () => {
                 <ErrorMessage
                   name="role"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
 
               {/* Face Image Upload */}
               <div>
-                <label className="block text-gray-700 font-medium mb-1">
+                <label className="block text-gray-dark font-medium mb-1">
                   Upload Face Image
                 </label>
                 <input
@@ -140,34 +141,30 @@ const Registeration = () => {
                   onChange={(event) =>
                     setFieldValue("faceImage", event.currentTarget.files[0])
                   }
-                  className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2"
+                  className="w-full text-sm border border-gray rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light outline-none transition"
                 />
                 <ErrorMessage
                   name="faceImage"
                   component="p"
-                  className="text-red-500 text-sm mt-1"
+                  className="text-error text-sm mt-1"
                 />
               </div>
-              {/* Remember Me & Forgot Password */}
-              <div className="text-end">
-                <Link
-                  to="#"
-                  className="text-indigo-600 ps-1 text-sm hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-2 text-white rounded-lg bg-indigo-600 hover:bg-indigo-700 transition duration-300"
+                className="w-full py-2.5 text-white rounded-lg bg-primary hover:bg-primary-dark shadow-soft transition duration-300"
               >
                 Register
               </button>
+
               {/* Login Link */}
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-dark">
                 Already have an account?{" "}
-                <Link to="/login" className="text-indigo-600 hover:underline">
+                <Link
+                  to="/login"
+                  className="text-primary font-medium hover:underline"
+                >
                   Login
                 </Link>
               </p>
@@ -179,4 +176,4 @@ const Registeration = () => {
   );
 };
 
-export default Registeration;
+export default Registration;
