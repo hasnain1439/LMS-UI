@@ -65,6 +65,12 @@ export default function AboutCourses() {
                 {coursesInfo.status}
               </span>
               }
+              {
+                coursesInfo.status === "draft" &&
+              <span className="px-2 py-1 bg-yellow  text-success rounded-lg">
+                {coursesInfo.status}
+              </span>
+              }
             </div>
             {/* student and week */}
             <div className="flex justify-between items-center mt-7">
