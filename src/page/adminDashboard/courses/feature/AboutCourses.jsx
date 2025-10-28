@@ -1,168 +1,176 @@
+import { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { FaPlus } from "react-icons/fa";
 import { FiEdit } from "react-icons/fi";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
 import { CoursesData as CurrentCourses } from "../../../../data/CoursesData";
-import { useState } from "react";
+import ViewCoursesData from "./ViewCoursesData";
+import EditCourses from "./EditCourses";
 
 export default function AboutCourses() {
   const [courses, setCourses] = useState(CurrentCourses);
-  const [virtualCourses, setVirtualCourses] = useState(true);
   const [viewCourseDetail, setViewCourseDetail] = useState(null);
   const [deletePopup, setDeletePopup] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
+  const [editCourse, setEditCourse] = useState(null);
 
-  const courseDetailHandler = (courseData) => {
-    setViewCourseDetail(courseData);
-    setVirtualCourses(true);
-  }
-  
-  
+  // View Details
+  const courseDetailHandler = (courseData) => setViewCourseDetail(courseData);
+
+  // Delete
   const deleteHandler = (index) => {
-   setDeleteIndex(index)
+    setDeleteIndex(index);
     setDeletePopup(true);
   };
-  const confirmationHandler = (index) => {
-    if(deleteIndex !== null){
-      const updateedCourses = courses.filter((_, idx) => idx != index);
-      setCourses(updateedCourses);
+
+  const confirmationHandler = () => {
+    if (deleteIndex !== null) {
+      const updatedCourses = courses.filter((_, idx) => idx !== deleteIndex);
+      setCourses(updatedCourses);
     }
     setDeletePopup(false);
     setDeleteIndex(null);
   };
+
+  // Edit
+  const editHandler = (course, index) => setEditCourse({ ...course, index });
+
+  const handleSaveEdit = (updatedData, index) => {
+    const updatedCourses = courses.map((c, idx) =>
+      idx === index ? updatedData : c
+    );
+    setCourses(updatedCourses);
+    setEditCourse(null);
+  };
+
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5 sm:gap-0 w-full">
-        {/* Search Field */}
-        <div className="w-full sm:w-1/3 border flex items-center gap-2 rounded-md px-2 focus-within:border-2 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200 transition">
-          <CiSearch className="text-gray-500" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5">
+        <div className="w-full sm:w-1/3 border border-gray flex items-center gap-2 rounded-md px-2">
+          <CiSearch className="text-gray" />
           <input
             type="search"
-            className="py-2 px-3 outline-none border-none bg-transparent w-full"
             placeholder="Search Course..."
+            className="py-2 px-3 outline-none border-none bg-transparent w-full text-gray-dark"
           />
         </div>
 
-        {/* Dropdown & Button */}
         <div className="flex items-center flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <select
-            name="Category"
-            id="category"
-            className="px-3 py-2 w-full sm:w-48 border bg-white outline-none rounded-md focus:border-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition"
-          >
-            <option value="All Categories" className="bg-white">
-              All Categories
-            </option>
-            <option value="Web Development" className="bg-white">
-              Web Development
-            </option>
-            <option value="UI/UX Design" className="bg-white">
-              UI/UX Design
-            </option>
-            <option value="Database" className="bg-white">
-              Database
-            </option>
+          <select className="px-3 py-2 w-full sm:w-48 border border-gray-light bg-white rounded-md outline-none text-gray-dark focus:border-primary focus:ring-1 focus:ring-primary">
+            <option value="All">All Categories</option>
+            <option value="Programming">Programming</option>
+            <option value="Design">Design</option>
+            <option value="Database">Database</option>
           </select>
-          <button className="w-full sm:w-auto bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors duration-300">
+
+          <button className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition">
             <FaPlus /> Add Course
           </button>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 w-full gap-4 mt-4">
-        {courses.map((coursesInfo, idx) => (
+
+      {/* Course Cards */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {courses.map((course, idx) => (
           <div
-            className="p-4 sm:p-6 bg-white rounded-xl shadow-soft hover:shadow-card transition-shadow duration-300"
             key={idx}
+            className="p-5 bg-white rounded-xl shadow-card hover:shadow-md transition-shadow"
           >
-            {/* courses detail */}
+            {/* Title + Status */}
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-lg font-semibold">{coursesInfo.title}</h2>
-                <span className="text-sm text-gray-500">
-                  {coursesInfo.category}
-                </span>
+                <h2 className="text-lg font-semibold text-gray-dark">
+                  {course.title}
+                </h2>
+                <span className="text-sm text-gray">{course.category}</span>
               </div>
-              {coursesInfo.status && (
+
+              {course.status && (
                 <span
-                  className={`px-2 py-1 rounded-lg capitalize ${
-                    coursesInfo.status === "active"
-                      ? "bg-green-100 text-green-700"
-                      : coursesInfo.status === "completed"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
+                  className={`px-2 py-1 rounded-lg capitalize text-sm font-medium border
+                    ${
+                      course.status === "active"
+                        ? "bg-success/10 text-success border-success/30"
+                        : course.status === "completed"
+                        ? "bg-primary/10 text-primary border-primary/30"
+                        : course.status === "draft"
+                        ? "bg-warning/10 text-warning border-warning/30"
+                        : "bg-error/10 text-error border-error/30"
+                    }`}
                 >
-                  {coursesInfo.status}
+                  {course.status}
                 </span>
               )}
             </div>
-            {/* student and week */}
-            <div className="flex justify-between items-center mt-7">
-              <div className="flex items-center gap-3">
-                <LuUsers className="text-gray text-xl" />
-                <span className="text-gray text-lg">
-                  {coursesInfo.students}
-                </span>
+
+            {/* Info */}
+            <div className="flex justify-between items-center mt-6">
+              <div className="flex items-center gap-2 text-gray-dark">
+                <LuUsers className="text-gray text-lg" />
+                <span>{course.students}</span>
               </div>
-              <span className="text-gray text-lg">{coursesInfo.duration}</span>
+              <span className="text-gray">{course.duration}</span>
             </div>
-            {/* progress detail */}
-            <div className="flex justify-between items-center mt-4">
-              <span className="text-gray font-semibold text-lg">Progress</span>
-              <span className="font-regular text-lg">
-                {coursesInfo.progress + "%"}
-              </span>
+
+            {/* Progress */}
+            <div className="flex justify-between items-center mt-4 text-gray-dark">
+              <span className="font-semibold">Progress</span>
+              <span>{course.progress}%</span>
             </div>
-            {/* progress bar */}
-            <div className="w-full rounded-lg bg-gray-light my-2">
+            <div className="w-full bg-gray-light rounded-full h-3 mt-1">
               <div
-                className="bg-primary h-3 rounded-lg"
-                style={{ width: coursesInfo.progress + "%" }}
+                className="bg-primary h-3 rounded-full transition-all"
+                style={{ width: `${course.progress}%` }}
               ></div>
             </div>
-            {/* view details button */}
-            <div className="grid sm:grid-cols-[43%_43%_auto] gap-2 items-center mt-4">
-              <button onClick={()=> courseDetailHandler(coursesInfo)} className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 whitespace-nowrap border border-gray hover:bg-gray-light transition-colors duration-300">
-                <MdOutlineRemoveRedEye />
-                View Details
+
+            {/* Buttons */}
+            <div className="grid sm:grid-cols-[43%_43%_auto] gap-2 mt-4">
+              <button
+                onClick={() => courseDetailHandler(course)}
+                className="flex items-center justify-center gap-2 border border-gray-light px-4 py-2 rounded-lg text-gray-dark hover:bg-gray-light transition"
+              >
+                <MdOutlineRemoveRedEye /> View
               </button>
-              <button className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 whitespace-nowrap border border-gray hover:bg-gray-light transition-colors duration-300">
-                <FiEdit />
-                View Details
+              <button
+                onClick={() => editHandler(course, idx)}
+                className="flex items-center justify-center gap-2 border border-primary px-4 py-2 rounded-lg text-primary hover:bg-primary/10 transition"
+              >
+                <FiEdit /> Edit
               </button>
               <button
                 onClick={() => deleteHandler(idx)}
-                className="text-error flex items-center justify-center gap-2 rounded-lg px-2 py-2 whitespace-nowrap border border-gray hover:bg-red-100 transition-colors duration-300"
+                className="flex items-center justify-center gap-2 border border-error text-error px-3 py-2 rounded-lg hover:bg-error/10 transition"
               >
-                <MdOutlineDeleteOutline className="text-xl" />
+                <MdOutlineDeleteOutline className="text-lg" />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Delete Popup */}
       {deletePopup && (
-        <div className="absolute w-[100%] h-[100%] bg-black/50 top-0 left-0 flex items-center justify-center">
-          <div className="min-w-[640px] p-5 bg-white rounded-lg ">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-card max-w-[420px] w-full">
+            <h2 className="text-lg font-semibold text-gray-dark mb-3">
               Confirm Deletion
             </h2>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this course? This action cannot be
-              undone.
+            <p className="text-gray mb-6">
+              Are you sure you want to delete this course? This action cannot be undone.
             </p>
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex justify-end gap-3">
               <button
-                type="button"
-                className="px-4 py-2 rounded-md bg-transparent font-semibold shadow-soft hover:shadow-card hover:bg-gray-light transition-colors duration-300"
                 onClick={() => setDeletePopup(false)}
+                className="px-4 py-2 bg-gray-light hover:bg-gray text-gray-dark rounded-md"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                className="px-4 py-2 rounded-md bg-error text-white font-semibold hover:bg-gray-light hover:text-black transition-colors duration-300"
-                onClick={()=> confirmationHandler(deleteIndex)}
+                onClick={confirmationHandler}
+                className="px-4 py-2 bg-error hover:bg-red-700 text-white rounded-md"
               >
                 Confirm
               </button>
@@ -170,8 +178,22 @@ export default function AboutCourses() {
           </div>
         </div>
       )}
-      {virtualCourses && (
-        
+
+      {/* Edit Popup */}
+      {editCourse && (
+        <EditCourses
+          course={editCourse}
+          onClose={() => setEditCourse(null)}
+          onSave={handleSaveEdit}
+        />
+      )}
+
+      {/* View Details */}
+      {viewCourseDetail && (
+        <ViewCoursesData
+          viewData={viewCourseDetail}
+          closePopup={() => setViewCourseDetail(null)}
+        />
       )}
     </div>
   );
