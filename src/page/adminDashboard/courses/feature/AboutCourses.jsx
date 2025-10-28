@@ -7,6 +7,7 @@ import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
 import { CoursesData as CurrentCourses } from "../../../../data/CoursesData";
 import ViewCoursesData from "./ViewCoursesData";
 import EditCourses from "./EditCourses";
+import AddCourses from "./AddCourses";
 
 export default function AboutCourses() {
   const [courses, setCourses] = useState(CurrentCourses);
@@ -14,6 +15,7 @@ export default function AboutCourses() {
   const [deletePopup, setDeletePopup] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [editCourse, setEditCourse] = useState(null);
+  const [addCourses, setAddCourses] = useState(false);
 
   // View Details
   const courseDetailHandler = (courseData) => setViewCourseDetail(courseData);
@@ -65,7 +67,7 @@ export default function AboutCourses() {
             <option value="Database">Database</option>
           </select>
 
-          <button className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition">
+          <button onClick={()=>setAddCourses(true)} className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition">
             <FaPlus /> Add Course
           </button>
         </div>
@@ -195,6 +197,14 @@ export default function AboutCourses() {
           closePopup={() => setViewCourseDetail(null)}
         />
       )}
+
+      {/* Add Courses */}
+      {addCourses && (
+        <AddCourses
+          onClose={setAddCourses}
+        />
+      )}
+
     </div>
   );
 }
