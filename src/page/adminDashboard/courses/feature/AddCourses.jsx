@@ -38,7 +38,7 @@ export default function AddCourses({ onClose }) {
 
   return (
     <div className="fixed -inset-10 bg-black/50 flex items-start justify-center z-50 overflow-auto pt-20 pb-10">
-      <div className="bg-white max-w-[640px] w-full mx-auto px-6 pt-8 pb-6 rounded-xl shadow-card relative">
+      <div className="bg-white max-w-[310px] sm:max-w-[640px] w-full mx-auto px-6 pt-8 pb-6 rounded-xl shadow-card relative">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
@@ -75,7 +75,7 @@ export default function AddCourses({ onClose }) {
                 <Field
                   name="name"
                   type="text"
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   placeholder="Enter course name"
                 />
                 <ErrorMessage
@@ -94,7 +94,7 @@ export default function AddCourses({ onClose }) {
                   as="textarea"
                   name="description"
                   rows="3"
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   placeholder="Write about this course..."
                 />
                 <ErrorMessage
@@ -112,7 +112,7 @@ export default function AddCourses({ onClose }) {
                 <Field
                   as="select"
                   name="categories"
-                  className="w-full border border-gray-300 rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full border border-gray-light rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
                 >
                   <option value="">Select category</option>
                   <option value="Web Development">Web Development</option>
@@ -136,7 +136,7 @@ export default function AddCourses({ onClose }) {
                   as="textarea"
                   name="courseCurriculum"
                   rows="3"
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   placeholder="Write about course content..."
                 />
                 <ErrorMessage
@@ -154,7 +154,7 @@ export default function AddCourses({ onClose }) {
                 <Field
                   name="totalSessions"
                   type="number"
-                  className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   placeholder="e.g. 10"
                 />
                 <ErrorMessage
@@ -180,7 +180,7 @@ export default function AddCourses({ onClose }) {
                           <Field
                             as="select"
                             name={`schedules[${index}].dayOfWeek`}
-                            className="border border-gray-300 rounded-md p-2 w-full sm:w-1/3 focus:ring-2 focus:ring-blue-400 outline-none"
+                            className="border border-gray-light rounded-md p-2 w-full sm:w-1/3 focus:ring-2 focus:ring-blue-400 outline-none"
                           >
                             <option value="">Select Day</option>
                             <option value="Monday">Monday</option>
@@ -195,12 +195,12 @@ export default function AddCourses({ onClose }) {
                           <Field
                             type="time"
                             name={`schedules[${index}].startTime`}
-                            className="border border-gray-300 rounded-md p-2 w-full sm:w-1/4 focus:ring-2 focus:ring-blue-400 outline-none"
+                            className="border border-gray-light rounded-md p-2 w-full sm:w-1/4 focus:ring-2 focus:ring-blue-400 outline-none"
                           />
                           <Field
                             type="time"
                             name={`schedules[${index}].endTime`}
-                            className="border border-gray-300 rounded-md p-2 w-full sm:w-1/4 focus:ring-2 focus:ring-blue-400 outline-none"
+                            className="border border-gray-light rounded-md p-2 w-full sm:w-1/4 focus:ring-2 focus:ring-blue-400 outline-none"
                           />
 
                           {values.schedules.length > 1 && (

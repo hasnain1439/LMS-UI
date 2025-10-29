@@ -37,8 +37,8 @@ export default function AddCourses({ onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-auto py-10">
-      <div className="bg-white max-w-[640px] w-full mx-auto px-6 pt-8 pb-5 rounded-xl shadow-card">
+    <div className="fixed -inset-10 bg-black/50 flex items-start justify-center z-50 overflow-auto py-10">
+      <div className="bg-white max-w-[310px] sm:max-w-[640px] w-full mx-auto px-6 pt-8 pb-5 rounded-xl shadow-card">
         {/* Header */}
         <h2 className="text-xl font-semibold text-gray-dark mb-4">
           Create New Course
