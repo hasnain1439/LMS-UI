@@ -3,16 +3,16 @@ import * as Yup from "yup";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import { useEffect } from "react";
 
-export default function AddCourses({ onClose }) {
+export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
   // ✅ Validation Schema
   const validationSchema = Yup.object({
-    name: Yup.string().required("Course name is required"),
+    title: Yup.string().required("Course title is required"),
     description: Yup.string().required("Description is required"),
-    categories: Yup.string().required("Category is required"),
-    courseCurriculum: Yup.string().required("Curriculum is required"),
-    totalSessions: Yup.number()
+    category: Yup.string().required("Category is required"),
+    duration: Yup.number()
       .typeError("Must be a number")
-      .required("Total sessions required"),
+      .required("Duration is required"),
+    courseCurriculum: Yup.string().required("Curriculum is required"),
     schedules: Yup.array().of(
       Yup.object({
         dayOfWeek: Yup.string().required("Day is required"),
@@ -30,8 +30,20 @@ export default function AddCourses({ onClose }) {
 
   // ✅ Form Submit Handler
   const handleSubmit = (values, { resetForm }) => {
-    console.log("Course Data:", values);
-    // Future API Integration here
+    const newCourse = {
+      title: values.title,
+      category: values.category,
+      students: Math.floor(Math.random() * 40) + 10, // Random 10–50
+      duration: `${values.duration} weeks`,
+      progress: 0,
+      status: "active",
+      description: values.description,
+      courseCurriculum: values.courseCurriculum,
+      schedules: values.schedules,
+    };
+
+    setNewCourse([...currentCourses, newCourse]);
+    console.log("✅ Course Added:", newCourse);
     resetForm();
     onClose?.();
   };
@@ -45,7 +57,7 @@ export default function AddCourses({ onClose }) {
             Create New Course
           </h2>
           <button
-            onClick={()=> onClose(false)}
+            onClick={() => onClose(false)}
             className="text-gray-500 hover:text-gray-700 text-lg font-bold"
           >
             ×
@@ -55,11 +67,11 @@ export default function AddCourses({ onClose }) {
         {/* Formik Form */}
         <Formik
           initialValues={{
-            name: "",
+            title: "",
             description: "",
-            categories: "",
+            category: "",
+            duration: "",
             courseCurriculum: "",
-            totalSessions: "",
             schedules: [{ dayOfWeek: "", startTime: "", endTime: "" }],
           }}
           validationSchema={validationSchema}
@@ -67,19 +79,19 @@ export default function AddCourses({ onClose }) {
         >
           {({ values }) => (
             <Form className="space-y-5">
-              {/* Course Name */}
+              {/* Title */}
               <div>
                 <label className="block font-medium text-gray-700 mb-1">
-                  Course Name
+                  Course Title
                 </label>
                 <Field
-                  name="name"
+                  name="title"
                   type="text"
                   className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
                   placeholder="Enter course name"
                 />
                 <ErrorMessage
-                  name="name"
+                  name="title"
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
@@ -111,23 +123,24 @@ export default function AddCourses({ onClose }) {
                 </label>
                 <Field
                   as="select"
-                  name="categories"
+                  name="category"
                   className="w-full border border-gray-light rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
                 >
                   <option value="">Select category</option>
                   <option value="Web Development">Web Development</option>
+                  <option value="Programming">Programming</option>
                   <option value="Data Science">Data Science</option>
                   <option value="Design">Design</option>
                   <option value="Business">Business</option>
                 </Field>
                 <ErrorMessage
-                  name="categories"
+                  name="category"
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
 
-              {/* Curriculum */}
+              {/* Course Curriculum */}
               <div>
                 <label className="block font-medium text-gray-700 mb-1">
                   Course Curriculum
@@ -146,19 +159,19 @@ export default function AddCourses({ onClose }) {
                 />
               </div>
 
-              {/* Total Sessions */}
+              {/* Duration */}
               <div>
                 <label className="block font-medium text-gray-700 mb-1">
-                  Total Sessions
+                  Duration (in weeks)
                 </label>
                 <Field
-                  name="totalSessions"
+                  name="duration"
                   type="number"
                   className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                  placeholder="e.g. 10"
+                  placeholder="e.g. 8"
                 />
                 <ErrorMessage
-                  name="totalSessions"
+                  name="duration"
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
@@ -208,7 +221,6 @@ export default function AddCourses({ onClose }) {
                               type="button"
                               onClick={() => remove(index)}
                               className="text-red-500 hover:text-red-600"
-                              title="Remove Schedule"
                             >
                               <FaTrash />
                             </button>
@@ -234,7 +246,7 @@ export default function AddCourses({ onClose }) {
               <div className="flex justify-end gap-3 pt-5">
                 <button
                   type="button"
-                  onClick={()=> onClose(false)}
+                  onClick={() => onClose(false)}
                   className="px-4 py-2 bg-gray-light hover:bg-gray text-gray-dark rounded-md"
                 >
                   Cancel

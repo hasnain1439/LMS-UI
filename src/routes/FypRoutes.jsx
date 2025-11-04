@@ -9,7 +9,7 @@ import Registeration from "../page/register/Registeration";
 import Login from "../page/login/Login";
 // ---- Teacher Dashboard Pages ----
 import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
-import QuizzesPage from "../page/adminDashboard/qizzes/feature/QuizzesPage";
+import QuizzesPage from "../page/adminDashboard/qizzes/index";
 import EnrollmentsPage from "../page/adminDashboard/enrollment/feature/EnrollmentsPage";
 import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";

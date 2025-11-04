@@ -4,7 +4,7 @@ import { FaPlus } from "react-icons/fa";
 import { FiEdit } from "react-icons/fi";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
-import { CoursesData as CurrentCourses } from "../../../../data/CoursesData";
+import { CoursesData as CurrentCourses } from "../../../../data/data";
 import ViewCoursesData from "./ViewCoursesData";
 import EditCourses from "./EditCourses";
 import AddCourses from "./AddCourses";
@@ -50,7 +50,7 @@ export default function AboutCourses() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5">
-        <div className="w-full sm:w-1/3 border border-gray flex items-center gap-2 rounded-md px-2">
+        <div className="w-full sm:w-1/3 flex items-center gap-2 rounded-md px-2 focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray transition">
           <CiSearch className="text-gray" />
           <input
             type="search"
@@ -67,7 +67,10 @@ export default function AboutCourses() {
             <option value="Database">Database</option>
           </select>
 
-          <button onClick={()=>setAddCourses(true)} className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition">
+          <button
+            onClick={() => setAddCourses(true)}
+            className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition"
+          >
             <FaPlus /> Add Course
           </button>
         </div>
@@ -161,7 +164,8 @@ export default function AboutCourses() {
               Confirm Deletion
             </h2>
             <p className="text-gray mb-6">
-              Are you sure you want to delete this course? This action cannot be undone.
+              Are you sure you want to delete this course? This action cannot be
+              undone.
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -202,9 +206,10 @@ export default function AboutCourses() {
       {addCourses && (
         <AddCourses
           onClose={setAddCourses}
+          currentCourses={courses}
+          setNewCourse={setCourses}
         />
       )}
-
     </div>
   );
 }
