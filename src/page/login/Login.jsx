@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaIdBadge, FaCamera } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 // ✅ Validation Schema — user can log in with:
 // (Email + Password) OR (Roll Number + Password) OR (Face Image)
@@ -17,6 +18,32 @@ const validationSchema = Yup.object().test(
     );
   }
 );
+
+const loginHandler = async(values, {resetForm})=>{
+  try{
+    const formData = new FormData();
+    if(values.email) formData.append("email", values.email);
+    if(values.rollNumber) formData.append("rollNumber", values.rollNumber);
+    if(values.password) formData.append("password", values.password);
+    if(values.faceImage) formData.append("faceImage", values.faceImage);
+
+    const res = await axios.post(
+      "http://localhost:5000/api/auth/login",
+      formData,
+       {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true, // 🔑 allows cookies
+        }
+    )
+    console.log("✅ Login Successful:", res.data);
+    alert("✅ Login Successful");
+    resetForm();
+  } catch(error){
+    console.log("❌ Login Error:", error.response?.data || error.message);
+    alert(error.response?.data?.error || "Login failed");
+  }
+}
+
 
 const Login = () => {
   return (
@@ -35,11 +62,7 @@ const Login = () => {
             faceImage: null,
           }}
           validationSchema={validationSchema}
-          onSubmit={(values, { resetForm }) => {
-            console.log("🟢 Login data submitted:", values);
-            alert("✅ Login submitted (frontend only)");
-            resetForm();
-          }}
+          onSubmit={loginHandler}
         >
           {({ setFieldValue }) => (
             <Form className="space-y-5">

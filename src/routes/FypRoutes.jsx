@@ -14,6 +14,7 @@ import EnrollmentsPage from "../page/adminDashboard/enrollment/feature/Enrollmen
 import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
+import VerifyEmail from "../page/verifyEmail/VerifyEmail";
 
 // ---- Teacher Dashboard Components ----]
 
@@ -32,6 +33,10 @@ function FypRoutes() {
     {
       path: "/register",
       element: <Registeration />,
+    },
+    {
+      path: "/verify-email/:token",
+      element: <VerifyEmail/>
     },
     {
       path: "/login",

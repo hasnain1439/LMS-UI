@@ -31,7 +31,7 @@ function Sidebar({ isOpen, setIsOpen }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-light flex flex-col justify-between hidden lg:flex">
+      <aside className="min-w-64 bg-white border-r border-gray-light flex flex-col justify-between hidden lg:flex">
         <div>
           <div className="flex items-center gap-3 mb-6 px-4 py-7 border-b border-gray-light">
             <div className="flex items-center justify-center p-2 bg-primary-light rounded-lg text-white text-xl">

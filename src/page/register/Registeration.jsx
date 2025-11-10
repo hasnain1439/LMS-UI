@@ -2,9 +2,11 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Registration = () => {
+  const navigate = useNavigate();
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
@@ -19,6 +21,39 @@ const Registration = () => {
     role: Yup.string().required("Please select a role"),
     faceImage: Yup.mixed().required("Face image is required"),
   });
+
+  const postData = async (values, { resetForm }) => {
+    const formData = new FormData();
+    formData.append("firstName", values.firstName);
+    formData.append("lastName", values.lastName);
+    formData.append("email", values.email);
+    formData.append("password", values.password);
+    formData.append("role", values.role);
+    if (values.faceImage) {
+      formData.append("faceImage", values.faceImage);
+    }
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      const token = res.data.token;
+      console.log("✅ Registration successful:", res.data);
+      navigate(`/verify-email/${token}`);
+      resetForm();
+    } catch (error) {
+      console.error(
+        "❌ Registration failed:",
+        error.response?.data || error.message
+      );
+      alert(error.response?.data?.error || "Registration failed");
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-light">
@@ -38,11 +73,7 @@ const Registration = () => {
             faceImage: null,
           }}
           validationSchema={validationSchema}
-          onSubmit={(values, { resetForm }) => {
-            console.log("✅ Form Data Submitted:", values);
-            alert("Registration successful (frontend only)");
-            resetForm();
-          }}
+          onSubmit={(values, helper) => postData(values, helper)}
         >
           {({ setFieldValue }) => (
             <Form className="space-y-5">
