@@ -15,6 +15,7 @@ import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
 import VerifyEmail from "../page/verifyEmail/VerifyEmail";
+import ResendVerification from "../page/resendEmaill/ResendVerification";
 
 // ---- Teacher Dashboard Components ----]
 
@@ -37,6 +38,10 @@ function FypRoutes() {
     {
       path: "/verify-email/:token",
       element: <VerifyEmail/>
+    },
+    {
+      path: "/resend-verification",
+      element: <ResendVerification/>
     },
     {
       path: "/login",
