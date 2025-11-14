@@ -5,8 +5,12 @@ import {
 } from "react-router-dom";
 
 // ---- Auth Pages ----
-import Registeration from "../page/register/Registeration";
-import Login from "../page/login/Login";
+import Registeration from "../page/auth/register/Registeration";
+import Login from "../page/auth/login/Login";
+import VerifyEmail from "../page/auth/verifyEmail/VerifyEmail";
+import ResendVerification from "../page/auth/resendEmaill/ResendVerification";
+import ForgotPassword from "../page/auth/forgetPassword/ForgetPassword";
+import ResetPassword from "../page/auth/resetPassword/ResetPassword";
 // ---- Teacher Dashboard Pages ----
 import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
 import QuizzesPage from "../page/adminDashboard/qizzes/index";
@@ -14,8 +18,6 @@ import EnrollmentsPage from "../page/adminDashboard/enrollment/feature/Enrollmen
 import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
-import VerifyEmail from "../page/verifyEmail/VerifyEmail";
-import ResendVerification from "../page/resendEmaill/ResendVerification";
 
 // ---- Teacher Dashboard Components ----]
 
@@ -39,9 +41,17 @@ function FypRoutes() {
       path: "/verify-email/:token",
       element: <VerifyEmail/>
     },
+     {
+      path: "/forget-password",
+      element: <ForgotPassword/>
+    },
     {
       path: "/resend-verification",
       element: <ResendVerification/>
+    },
+      {
+      path: "/reset-password/:token",
+      element: <ResetPassword/>
     },
     {
       path: "/login",

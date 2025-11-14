@@ -1,12 +1,11 @@
 import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { FaEnvelope, FaLock, FaIdBadge, FaCamera } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { FaEnvelope, FaLock, FaIdBadge } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-// ✅ Validation Schema — user can log in with:
-// (Email + Password) OR (Roll Number + Password) OR (Face Image)
+// ✅ Validation Schema
 const validationSchema = Yup.object().test(
   "oneOfRequired",
   "Provide Email + Password, Roll Number + Password, or Face Image",
@@ -19,37 +18,49 @@ const validationSchema = Yup.object().test(
   }
 );
 
-const loginHandler = async(values, {resetForm})=>{
-  try{
-    const formData = new FormData();
-    if(values.email) formData.append("email", values.email);
-    if(values.rollNumber) formData.append("rollNumber", values.rollNumber);
-    if(values.password) formData.append("password", values.password);
-    if(values.faceImage) formData.append("faceImage", values.faceImage);
-
-    const res = await axios.post(
-      "http://localhost:5000/api/auth/login",
-      formData,
-       {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true, // 🔑 allows cookies
-        }
-    )
-    console.log("✅ Login Successful:", res.data);
-    alert("✅ Login Successful");
-    resetForm();
-  } catch(error){
-    console.log("❌ Login Error:", error.response?.data || error.message);
-    alert(error.response?.data?.error || "Login failed");
-  }
-}
-
-
 const Login = () => {
+  const navigate = useNavigate();
+
+  const loginHandler = async (values, { resetForm }) => {
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      if (values.email) formData.append("email", values.email);
+      if (values.rollNumber) formData.append("rollNumber", values.rollNumber);
+      if (values.password) formData.append("password", values.password);
+      if (values.faceImage) formData.append("faceImage", values.faceImage);
+
+      // Call login API
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true, // 🔑 allow cookies
+        }
+      );
+
+      console.log("✅ Login Successful:", res.data);
+      alert("✅ Login Successful");
+
+      // ✅ Role-based redirection
+      const role = res.data.user.role;
+      if (role === "teacher") {
+        navigate("/teacher");
+      } else {
+        navigate("/student");
+      }
+
+      resetForm();
+    } catch (error) {
+      console.log("❌ Login Error:", error.response?.data || error.message);
+      alert(error.response?.data?.error || "Login failed");
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-light px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-card p-8">
-        {/* Title */}
         <h2 className="text-2xl font-bold text-center text-gray-dark mb-6">
           Login to Your Account
         </h2>
@@ -138,7 +149,7 @@ const Login = () => {
               {/* Forgot Password */}
               <div className="text-right">
                 <Link
-                  to="/forgot-password"
+                  to="/forget-password"
                   className="text-primary text-sm hover:underline"
                 >
                   Forgot Password?
@@ -156,7 +167,10 @@ const Login = () => {
               {/* Register Link */}
               <p className="text-center text-sm text-gray-dark">
                 Don’t have an account?{" "}
-                <Link to="/register" className="text-primary font-medium hover:underline">
+                <Link
+                  to="/register"
+                  className="text-primary font-medium hover:underline"
+                >
                   Register
                 </Link>
               </p>
