@@ -1,21 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { FaPlus } from "react-icons/fa";
 import { FiEdit } from "react-icons/fi";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
-import { CoursesData as CurrentCourses } from "../../../../data/data";
 import ViewCoursesData from "./ViewCoursesData";
 import EditCourses from "./EditCourses";
 import AddCourses from "./AddCourses";
+import { GetCourses } from "../../../../api/GetCourses";
 
 export default function AboutCourses() {
-  const [courses, setCourses] = useState(CurrentCourses);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [filterCategory, setFilterCategory] = useState("All");
+  const [searchText, setSearchText] = useState("");
+
   const [viewCourseDetail, setViewCourseDetail] = useState(null);
   const [deletePopup, setDeletePopup] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [editCourse, setEditCourse] = useState(null);
   const [addCourses, setAddCourses] = useState(false);
+
+  // Fetch courses whenever filter or search changes
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      try {
+        const filters = {
+          category: filterCategory === "All" ? undefined : filterCategory,
+          search: searchText || undefined,
+        };
+        const data = await GetCourses(filters);
+        setCourses(data);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        setError("Failed to load courses.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [filterCategory, searchText]);
 
   // View Details
   const courseDetailHandler = (courseData) => setViewCourseDetail(courseData);
@@ -56,15 +84,23 @@ export default function AboutCourses() {
             type="search"
             placeholder="Search Course..."
             className="py-2 px-3 outline-none border-none bg-transparent w-full text-gray-dark"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
 
         <div className="flex items-center flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <select className="px-3 py-2 w-full sm:w-48 border border-gray-light bg-white rounded-md outline-none text-gray-dark focus:border-primary focus:ring-1 focus:ring-primary">
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="px-3 py-2 w-full sm:w-48 border border-gray-light bg-white rounded-md outline-none text-gray-dark focus:border-primary focus:ring-1 focus:ring-primary"
+          >
             <option value="All">All Categories</option>
             <option value="Programming">Programming</option>
             <option value="Design">Design</option>
             <option value="Database">Database</option>
+            <option value="Web Development">Web Development</option>
+            <option value="Business">Business</option>
           </select>
 
           <button
@@ -77,24 +113,39 @@ export default function AboutCourses() {
       </div>
 
       {/* Course Cards */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {courses.map((course, idx) => (
-          <div
-            key={idx}
-            className="p-5 bg-white rounded-xl shadow-card hover:shadow-md transition-shadow"
-          >
-            {/* Title + Status */}
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-dark">
-                  {course.title}
-                </h2>
-                <span className="text-sm text-gray">{course.category}</span>
-              </div>
+      <div className="grid md:grid-cols-2 gap-4 min-h-[150px]">
+        {loading ? (
+          <div className="col-span-full text-center text-gray-dark py-10">
+            Loading courses...
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center text-red-500 py-10">
+            {error}
+          </div>
+        ) : courses.length === 0 ? (
+          <div className="col-span-full text-center text-gray-dark py-10">
+            No courses found.
+          </div>
+        ) : (
+          courses.map((course, idx) => (
+            <div
+              key={idx}
+              className="p-5 bg-white rounded-xl shadow-card hover:shadow-md transition-shadow"
+            >
+              {/* Title + Status */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-dark">
+                    {course.name}
+                  </h2>
+                  <span className="text-sm text-gray">
+                    {course.categories.join(", ")}
+                  </span>
+                </div>
 
-              {course.status && (
-                <span
-                  className={`px-2 py-1 rounded-lg capitalize text-sm font-medium border
+                {course.status && (
+                  <span
+                    className={`px-2 py-1 rounded-lg capitalize text-sm font-medium border
                     ${
                       course.status === "active"
                         ? "bg-success/10 text-success border-success/30"
@@ -104,56 +155,45 @@ export default function AboutCourses() {
                         ? "bg-warning/10 text-warning border-warning/30"
                         : "bg-error/10 text-error border-error/30"
                     }`}
-                >
-                  {course.status}
-                </span>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="flex justify-between items-center mt-6">
-              <div className="flex items-center gap-2 text-gray-dark">
-                <LuUsers className="text-gray text-lg" />
-                <span>{course.students}</span>
+                  >
+                    {course.status}
+                  </span>
+                )}
               </div>
-              <span className="text-gray">{course.duration}</span>
-            </div>
 
-            {/* Progress */}
-            <div className="flex justify-between items-center mt-4 text-gray-dark">
-              <span className="font-semibold">Progress</span>
-              <span>{course.progress}%</span>
-            </div>
-            <div className="w-full bg-gray-light rounded-full h-3 mt-1">
-              <div
-                className="bg-primary h-3 rounded-full transition-all"
-                style={{ width: `${course.progress}%` }}
-              ></div>
-            </div>
+              {/* Info */}
+              <div className="flex justify-between items-center mt-6">
+                <div className="flex items-center gap-2 text-gray-dark">
+                  <LuUsers className="text-gray text-lg" />
+                  <span>{course.enrollmentCount || 0}</span>
+                </div>
+                <span className="text-gray">{course.totalSessions} weeks</span>
+              </div>
 
-            {/* Buttons */}
-            <div className="grid sm:grid-cols-[43%_43%_auto] gap-2 mt-4">
-              <button
-                onClick={() => courseDetailHandler(course)}
-                className="flex items-center justify-center gap-2 border border-gray-light px-4 py-2 rounded-lg text-gray-dark hover:bg-gray-light transition"
-              >
-                <MdOutlineRemoveRedEye /> View
-              </button>
-              <button
-                onClick={() => editHandler(course, idx)}
-                className="flex items-center justify-center gap-2 border border-primary px-4 py-2 rounded-lg text-primary hover:bg-primary/10 transition"
-              >
-                <FiEdit /> Edit
-              </button>
-              <button
-                onClick={() => deleteHandler(idx)}
-                className="flex items-center justify-center gap-2 border border-error text-error px-3 py-2 rounded-lg hover:bg-error/10 transition"
-              >
-                <MdOutlineDeleteOutline className="text-lg" />
-              </button>
+              {/* Buttons */}
+              <div className="grid sm:grid-cols-[43%_43%_auto] gap-2 mt-4">
+                <button
+                  onClick={() => courseDetailHandler(course)}
+                  className="flex items-center justify-center gap-2 border border-gray-light px-4 py-2 rounded-lg text-gray-dark hover:bg-gray-light transition"
+                >
+                  <MdOutlineRemoveRedEye /> View
+                </button>
+                <button
+                  onClick={() => editHandler(course, idx)}
+                  className="flex items-center justify-center gap-2 border border-primary px-4 py-2 rounded-lg text-primary hover:bg-primary/10 transition"
+                >
+                  <FiEdit /> Edit
+                </button>
+                <button
+                  onClick={() => deleteHandler(idx)}
+                  className="flex items-center justify-center gap-2 border border-error text-error px-3 py-2 rounded-lg hover:bg-error/10 transition"
+                >
+                  <MdOutlineDeleteOutline className="text-lg" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Delete Popup */}
@@ -206,8 +246,8 @@ export default function AboutCourses() {
       {addCourses && (
         <AddCourses
           onClose={setAddCourses}
-          currentCourses={courses}
           setNewCourse={setCourses}
+          currentCourses={courses}
         />
       )}
     </div>

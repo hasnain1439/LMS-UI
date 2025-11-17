@@ -1,14 +1,27 @@
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { CreateCoursesApi } from "../../../../api/Courses"; // adjust path
 
-export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
+export default function AddCourses({ onClose }) {
+  const [loading, setLoading] = useState(false);
+
+  const dayMap = {
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+    Sunday: 7,
+  };
+
   // ✅ Validation Schema
   const validationSchema = Yup.object({
     title: Yup.string().required("Course title is required"),
     description: Yup.string().required("Description is required"),
-    category: Yup.string().required("Category is required"),
+    categories: Yup.array().min(1, "Select at least one category"),
     duration: Yup.number()
       .typeError("Must be a number")
       .required("Duration is required"),
@@ -22,36 +35,43 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
     ),
   });
 
-  // ✅ Prevent background scroll
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => (document.body.style.overflow = "auto");
   }, []);
 
-  // ✅ Form Submit Handler
-  const handleSubmit = (values, { resetForm }) => {
-    const newCourse = {
-      title: values.title,
-      category: values.category,
-      students: Math.floor(Math.random() * 40) + 10, // Random 10–50
-      duration: `${values.duration} weeks`,
-      progress: 0,
-      status: "active",
-      description: values.description,
-      courseCurriculum: values.courseCurriculum,
-      schedules: values.schedules,
-    };
+  const handleSubmit = async (values, { resetForm }) => {
+    try {
+      setLoading(true);
 
-    setNewCourse([...currentCourses, newCourse]);
-    console.log("✅ Course Added:", newCourse);
-    resetForm();
-    onClose?.();
+      const apiData = {
+        name: values.title,
+        description: values.description,
+        categories: values.categories, // array
+        totalSessions: values.duration,
+        courseCurriculum: values.courseCurriculum,
+        schedules: values.schedules.map((s) => ({
+          dayOfWeek: dayMap[s.dayOfWeek], // convert to number
+          startTime: s.startTime,
+          endTime: s.endTime,
+        })),
+      };
+
+      const res = await CreateCoursesApi(apiData);
+      console.log("✅ Course Created:", res.course);
+      resetForm();
+      onClose?.();
+      setLoading(false);
+    } catch (error) {
+      console.error("Error creating course:", error);
+      alert("Failed to create course. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
     <div className="fixed -inset-10 bg-black/50 flex items-start justify-center z-50 overflow-auto pt-20 pb-10">
       <div className="bg-white max-w-[310px] sm:max-w-[640px] w-full mx-auto px-6 pt-8 pb-6 rounded-xl shadow-card relative">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-800">
             Create New Course
@@ -64,12 +84,11 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
           </button>
         </div>
 
-        {/* Formik Form */}
         <Formik
           initialValues={{
             title: "",
             description: "",
-            category: "",
+            categories: [],
             duration: "",
             courseCurriculum: "",
             schedules: [{ dayOfWeek: "", startTime: "", endTime: "" }],
@@ -77,7 +96,7 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ values }) => (
+          {({ values, setFieldValue }) => (
             <Form className="space-y-5">
               {/* Title */}
               <div>
@@ -88,7 +107,7 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
                   name="title"
                   type="text"
                   className="w-full border border-gray-light rounded-md p-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                  placeholder="Enter course name"
+                  placeholder="Enter course title"
                 />
                 <ErrorMessage
                   name="title"
@@ -116,31 +135,53 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
                 />
               </div>
 
-              {/* Category */}
+              {/* Categories */}
               <div>
                 <label className="block font-medium text-gray-700 mb-1">
-                  Category
+                  Categories
                 </label>
-                <Field
-                  as="select"
-                  name="category"
-                  className="w-full border border-gray-light rounded-md p-2 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
-                >
-                  <option value="">Select category</option>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Programming">Programming</option>
-                  <option value="Data Science">Data Science</option>
-                  <option value="Design">Design</option>
-                  <option value="Business">Business</option>
-                </Field>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Web Development",
+                    "Programming",
+                    "Data Science",
+                    "Design",
+                    "Business",
+                  ].map((cat) => (
+                    <label
+                      key={cat}
+                      className="inline-flex items-center gap-1 border px-2 py-1 rounded-md cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        value={cat}
+                        checked={values.categories.includes(cat)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFieldValue("categories", [
+                              ...values.categories,
+                              cat,
+                            ]);
+                          } else {
+                            setFieldValue(
+                              "categories",
+                              values.categories.filter((c) => c !== cat)
+                            );
+                          }
+                        }}
+                      />
+                      <span className="text-gray-700">{cat}</span>
+                    </label>
+                  ))}
+                </div>
                 <ErrorMessage
-                  name="category"
+                  name="categories"
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
               </div>
 
-              {/* Course Curriculum */}
+              {/* Curriculum */}
               <div>
                 <label className="block font-medium text-gray-700 mb-1">
                   Course Curriculum
@@ -196,13 +237,11 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
                             className="border border-gray-light rounded-md p-2 w-full sm:w-1/3 focus:ring-2 focus:ring-blue-400 outline-none"
                           >
                             <option value="">Select Day</option>
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
+                            {Object.keys(dayMap).map((day) => (
+                              <option key={day} value={day}>
+                                {day}
+                              </option>
+                            ))}
                           </Field>
 
                           <Field
@@ -253,9 +292,10 @@ export default function AddCourses({ onClose, setNewCourse, currentCourses }) {
                 </button>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
                 >
-                  Create Course
+                  {loading ? "Creating..." : "Create Course"}
                 </button>
               </div>
             </Form>
