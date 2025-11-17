@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBookOpen,
   FaClipboardList,
@@ -9,9 +9,11 @@ import {
 } from "react-icons/fa";
 import { PiBookOpenTextThin } from "react-icons/pi";
 import { RxCross2 } from "react-icons/rx";
+import { logout } from "./LogoutButton";
 
 function Sidebar({ isOpen, setIsOpen }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: "/teacher", label: "Dashboard", icon: <FaChalkboardTeacher /> },
@@ -20,6 +22,11 @@ function Sidebar({ isOpen, setIsOpen }) {
     { path: "/teacher/enrollments", label: "Enrollments", icon: <FaUsers /> },
     { path: "/teacher/profile", label: "Profile", icon: <FaUser /> },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   const linkClass = (path) =>
     `flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
@@ -52,7 +59,10 @@ function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         <div className="p-4 border-t border-gray-light">
-          <button className="w-full flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200"
+          >
             <FaSignOutAlt /> Logout
           </button>
         </div>
@@ -87,7 +97,10 @@ function Sidebar({ isOpen, setIsOpen }) {
           </nav>
         </div>
 
-        <button className="flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200"
+        >
           <FaSignOutAlt /> Logout
         </button>
       </aside>

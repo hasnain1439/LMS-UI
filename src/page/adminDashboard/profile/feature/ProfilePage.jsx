@@ -1,62 +1,47 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { FaEnvelope, FaUser, FaIdBadge, FaCalendarAlt, FaUserCheck } from "react-icons/fa";
+import React, { useContext } from "react";
+import { UserContext } from "../../../../context/ContextApi";
+import { useNavigate } from "react-router-dom";
+import {
+  FaEnvelope,
+  FaIdBadge,
+  FaUserCheck,
+  FaCalendarAlt,
+} from "react-icons/fa";
+import { logout } from "../../../../component/LogoutButton";
 
 const ProfilePage = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/auth/profile", {
-          withCredentials: true, // include cookies for authentication
-        });
-        setUser(res.data.user);
-      } catch (err) {
-        console.error(
-          "Error fetching profile:",
-          err.response?.data || err.message
-        );
-        setError(err.response?.data?.error || "Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (!user) return <p className="text-center mt-10">Loading profile...</p>;
 
-    fetchProfile();
-  }, []);
-
-  if (loading)
-    return <p className="text-center mt-20 text-gray-600">Loading profile...</p>;
-  if (error)
-    return <p className="text-center mt-20 text-red-500">{error}</p>;
-  if (!user)
-    return <p className="text-center mt-20 text-gray-600">No profile data found.</p>;
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center sm:p-4">
-      <div className="w-full bg-white rounded-xl shadow-lg p-4 sm:p-8">
+    <div className="min-h-screen bg-gray-100 flex items-start justify-center sm:p-4">
+      <div className="w-full bg-white rounded-xl shadow-lg p-4 sm:p-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-8 mb-8 border-b pb-6">
+        <div className="flex flex-col md:flex-row items-center md:space-x-8 mb-8 border-b pb-6">
           <img
             src={user.profilePicture || "/default-avatar.png"}
             alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-primary mb-4 md:mb-0"
+            className="w-32 h-32 rounded-full border-4 border-blue-600 mb-4 md:mb-0"
           />
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-3xl font-bold">
               {user.firstName} {user.lastName}
             </h1>
             <p className="text-gray-500 mt-1 capitalize">{user.role}</p>
           </div>
         </div>
 
-        {/* Profile Details */}
+        {/* Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-center space-x-3">
-            <FaEnvelope className="text-primary text-xl" />
+            <FaEnvelope className="text-blue-600 text-xl" />
             <div>
               <p className="text-gray-500 text-sm">Email</p>
               <p className="font-medium text-gray-800">{user.email}</p>
@@ -65,7 +50,7 @@ const ProfilePage = () => {
 
           {user.rollNumber && (
             <div className="flex items-center space-x-3">
-              <FaIdBadge className="text-primary text-xl" />
+              <FaIdBadge className="text-blue-600 text-xl" />
               <div>
                 <p className="text-gray-500 text-sm">Roll Number</p>
                 <p className="font-medium text-gray-800">{user.rollNumber}</p>
@@ -74,7 +59,7 @@ const ProfilePage = () => {
           )}
 
           <div className="flex items-center space-x-3">
-            <FaUserCheck className="text-primary text-xl" />
+            <FaUserCheck className="text-blue-600 text-xl" />
             <div>
               <p className="text-gray-500 text-sm">Status</p>
               <p
@@ -88,7 +73,7 @@ const ProfilePage = () => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <FaCalendarAlt className="text-primary text-xl" />
+            <FaCalendarAlt className="text-blue-600 text-xl" />
             <div>
               <p className="text-gray-500 text-sm">Joined</p>
               <p className="font-medium text-gray-800">
@@ -99,9 +84,27 @@ const ProfilePage = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center md:text-left">
-          <button className="px-6 py-2 bg-primary text-white rounded-lg shadow hover:bg-primary-dark transition">
+        <div className="mt-8 flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-4">
+          {/* Edit Profile Button */}
+          <button
+            onClick={() => navigate("/teacher/update-profile")}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          >
             Edit Profile
+          </button>
+
+          {/* Change Password Button */}
+          <button
+            onClick={() => navigate("/teacher/change-password")}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+          >
+            Change Password
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+          >
+            Logout
           </button>
         </div>
       </div>

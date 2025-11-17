@@ -1,10 +1,14 @@
+// src/App.js
+
+import { UserProvider } from "./context/ContextApi";
 import FypRoutes from "./routes/FypRoutes";
 
-
 function App() {
-  return(
-    <FypRoutes/>
-  )
+  return (
+    <UserProvider>
+      <FypRoutes />
+    </UserProvider>
+  );
 }
 
 export default App;

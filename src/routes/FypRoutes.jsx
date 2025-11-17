@@ -1,8 +1,4 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Outlet,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // ---- Auth Pages ----
 import Registeration from "../page/auth/register/Registeration";
@@ -11,18 +7,16 @@ import VerifyEmail from "../page/auth/verifyEmail/VerifyEmail";
 import ResendVerification from "../page/auth/resendEmaill/ResendVerification";
 import ForgotPassword from "../page/auth/forgetPassword/ForgetPassword";
 import ResetPassword from "../page/auth/resetPassword/ResetPassword";
+
 // ---- Teacher Dashboard Pages ----
 import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
 import QuizzesPage from "../page/adminDashboard/qizzes/index";
 import EnrollmentsPage from "../page/adminDashboard/enrollment/feature/EnrollmentsPage";
 import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
+import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
-
-// ---- Teacher Dashboard Components ----]
-
-
-
+import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -33,66 +27,38 @@ function FypRoutes() {
         <h1 className="text-center text-2xl font-bold mt-10">Home Page</h1>
       ),
     },
-    {
-      path: "/register",
-      element: <Registeration />,
-    },
-    {
-      path: "/verify-email/:token",
-      element: <VerifyEmail/>
-    },
-     {
-      path: "/forget-password",
-      element: <ForgotPassword/>
-    },
-    {
-      path: "/resend-verification",
-      element: <ResendVerification/>
-    },
-      {
-      path: "/reset-password/:token",
-      element: <ResetPassword/>
-    },
-    {
-      path: "/login",
-      element: <Login />,
-    },
+    { path: "/register", element: <Registeration /> },
+    { path: "/login", element: <Login /> },
+    { path: "/verify-email/:token", element: <VerifyEmail /> },
+    { path: "/resend-verification", element: <ResendVerification /> },
+    { path: "/forget-password", element: <ForgotPassword /> },
+    { path: "/reset-password/:token", element: <ResetPassword /> },
 
     // ---- Teacher Dashboard Routes ----
     {
       path: "/teacher",
-      element: <TeacherDashboard />,
-      handle: { title: "Dashboard Overview" },
+      element: <TeacherDashboard />, // Layout with <Outlet />
       children: [
-        {
-          index: true,
-          element: <DashboardHome />,
-          handle: { title: "Dashboard Overview 👋" },
-        },
-        {
-          path: "courses",
-          element: <CoursesPage />,
-          handle: { title: "My Courses" },
-        },
-        {
-          path: "quizzes",
-          element: <QuizzesPage />,
-          handle: { title: "My Quizzes" },
-        },
-        {
-          path: "enrollments",
-          element: <EnrollmentsPage />,
-          handle: { title: "Enrollments" },
-        },
-        {
-          path: "profile",
-          element: <ProfilePage />,
-          handle: { title: "My Profile" },
-        },
+        { index: true, element: <DashboardHome /> },
+        { path: "courses", element: <CoursesPage /> },
+        { path: "quizzes", element: <QuizzesPage /> },
+        { path: "enrollments", element: <EnrollmentsPage /> },
+        { path: "profile", element: <ProfilePage /> }, // Profile page
+        { path: "update-profile", element: <UpdateProfile /> }, // Update profile page
+        {path: "change-password", element: <ChangePassword/>}
       ],
     },
-  ]);
 
+    // Optional: fallback route for 404
+    {
+      path: "*",
+      element: (
+        <h1 className="text-center text-2xl font-bold mt-10 text-red-500">
+          404 | Page Not Found
+        </h1>
+      ),
+    },
+  ]);
 
   return <RouterProvider router={router} />;
 }
