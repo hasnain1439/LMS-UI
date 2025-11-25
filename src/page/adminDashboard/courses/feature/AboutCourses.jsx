@@ -4,8 +4,10 @@ import { FaPlus } from "react-icons/fa";
 import { FiEdit } from "react-icons/fi";
 import { LuUsers } from "react-icons/lu";
 import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
-import ViewCoursesData from "./ViewCoursesData";
-import EditCourses from "./EditCourses";
+import { Link } from "react-router-dom";
+import axios from "axios";
+
+import UpdateCourses from "./UpdateCourses.jsx";
 import AddCourses from "./AddCourses";
 import { GetCourses } from "../../../../api/GetCourses";
 
@@ -17,13 +19,12 @@ export default function AboutCourses() {
   const [filterCategory, setFilterCategory] = useState("All");
   const [searchText, setSearchText] = useState("");
 
-  const [viewCourseDetail, setViewCourseDetail] = useState(null);
-  const [deletePopup, setDeletePopup] = useState(false);
-  const [deleteIndex, setDeleteIndex] = useState(null);
   const [editCourse, setEditCourse] = useState(null);
   const [addCourses, setAddCourses] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
+  const [deletePopup, setDeletePopup] = useState(false);
 
-  // Fetch courses whenever filter or search changes
+  // Fetch courses
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -33,7 +34,7 @@ export default function AboutCourses() {
           search: searchText || undefined,
         };
         const data = await GetCourses(filters);
-        setCourses(data);
+        setCourses(data || []);
       } catch (err) {
         console.error("Failed to fetch courses:", err);
         setError("Failed to load courses.");
@@ -41,42 +42,65 @@ export default function AboutCourses() {
         setLoading(false);
       }
     };
-
     fetchCourses();
   }, [filterCategory, searchText]);
 
-  // View Details
-  const courseDetailHandler = (courseData) => setViewCourseDetail(courseData);
+  // Edit course
+  const editHandler = (course) => setEditCourse({ ...course });
 
-  // Delete
+  const handleSaveEdit = async (updatedCourse) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/courses/${updatedCourse.id}`,
+        updatedCourse,
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+      );
+
+      setCourses((prev) =>
+        prev.map((c) => (c.id === updatedCourse.id ? response.data.course : c))
+      );
+      setEditCourse(null);
+    } catch (err) {
+      console.error("Update course failed:", err.response?.data || err);
+      alert(err.response?.data?.error || "Failed to update course.");
+    }
+  };
+
+  // Delete course
   const deleteHandler = (index) => {
     setDeleteIndex(index);
     setDeletePopup(true);
   };
-
-  const confirmationHandler = () => {
-    if (deleteIndex !== null) {
-      const updatedCourses = courses.filter((_, idx) => idx !== deleteIndex);
-      setCourses(updatedCourses);
+  // delete course
+  const confirmationHandler = async () => {
+    if (deleteIndex === null) return;
+    const token = localStorage.getItem("token");
+    const courseId = courses[deleteIndex].id;
+    try {
+      await axios.delete(`http://localhost:5000/api/courses/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      setCourses((prev) => prev.filter((_, idx) => idx !== deleteIndex));
+    } catch (err) {
+      console.error("Delete course failed:", err.response?.data || err);
+      alert(err.response?.data?.error || "Failed to delete course.");
+    } finally {
+      setDeletePopup(false);
+      setDeleteIndex(null);
     }
-    setDeletePopup(false);
-    setDeleteIndex(null);
   };
 
-  // Edit
-  const editHandler = (course, index) => setEditCourse({ ...course, index });
-
-  const handleSaveEdit = (updatedData, index) => {
-    const updatedCourses = courses.map((c, idx) =>
-      idx === index ? updatedData : c
-    );
-    setCourses(updatedCourses);
-    setEditCourse(null);
+  // Add course
+  const handleAddCourse = (newCourse) => {
+    setCourses((prev) => [newCourse, ...prev]);
+    setAddCourses(false);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Search + Add */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5">
         <div className="w-full sm:w-1/3 flex items-center gap-2 rounded-md px-2 focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray transition">
           <CiSearch className="text-gray" />
@@ -112,7 +136,7 @@ export default function AboutCourses() {
         </div>
       </div>
 
-      {/* Course Cards */}
+      {/* Courses Grid */}
       <div className="grid md:grid-cols-2 gap-4 min-h-[150px]">
         {loading ? (
           <div className="col-span-full text-center text-gray-dark py-10">
@@ -129,24 +153,21 @@ export default function AboutCourses() {
         ) : (
           courses.map((course, idx) => (
             <div
-              key={idx}
+              key={course.id}
               className="p-5 bg-white rounded-xl shadow-card hover:shadow-md transition-shadow"
             >
-              {/* Title + Status */}
               <div className="flex justify-between items-start">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-dark">
                     {course.name}
                   </h2>
                   <span className="text-sm text-gray">
-                    {course.categories.join(", ")}
+                    {(course.categories || []).join(", ")}
                   </span>
                 </div>
-
                 {course.status && (
                   <span
-                    className={`px-2 py-1 rounded-lg capitalize text-sm font-medium border
-                    ${
+                    className={`px-2 py-1 rounded-lg capitalize text-sm font-medium border ${
                       course.status === "active"
                         ? "bg-success/10 text-success border-success/30"
                         : course.status === "completed"
@@ -161,29 +182,31 @@ export default function AboutCourses() {
                 )}
               </div>
 
-              {/* Info */}
               <div className="flex justify-between items-center mt-6">
                 <div className="flex items-center gap-2 text-gray-dark">
                   <LuUsers className="text-gray text-lg" />
                   <span>{course.enrollmentCount || 0}</span>
                 </div>
-                <span className="text-gray">{course.totalSessions} weeks</span>
+                <span className="text-gray">
+                  {course.totalSessions || 0} weeks
+                </span>
               </div>
 
-              {/* Buttons */}
               <div className="grid sm:grid-cols-[43%_43%_auto] gap-2 mt-4">
-                <button
-                  onClick={() => courseDetailHandler(course)}
+                <Link
+                  to={`/teacher/course/${course.id}`}
                   className="flex items-center justify-center gap-2 border border-gray-light px-4 py-2 rounded-lg text-gray-dark hover:bg-gray-light transition"
                 >
                   <MdOutlineRemoveRedEye /> View
-                </button>
+                </Link>
+
                 <button
-                  onClick={() => editHandler(course, idx)}
+                  onClick={() => editHandler(course)}
                   className="flex items-center justify-center gap-2 border border-primary px-4 py-2 rounded-lg text-primary hover:bg-primary/10 transition"
                 >
                   <FiEdit /> Edit
                 </button>
+
                 <button
                   onClick={() => deleteHandler(idx)}
                   className="flex items-center justify-center gap-2 border border-error text-error px-3 py-2 rounded-lg hover:bg-error/10 transition"
@@ -225,29 +248,20 @@ export default function AboutCourses() {
         </div>
       )}
 
-      {/* Edit Popup */}
+      {/* Edit Courses Popup */}
       {editCourse && (
-        <EditCourses
+        <UpdateCourses
           course={editCourse}
           onClose={() => setEditCourse(null)}
           onSave={handleSaveEdit}
         />
       )}
 
-      {/* View Details */}
-      {viewCourseDetail && (
-        <ViewCoursesData
-          viewData={viewCourseDetail}
-          closePopup={() => setViewCourseDetail(null)}
-        />
-      )}
-
-      {/* Add Courses */}
+      {/* Add Course Popup */}
       {addCourses && (
         <AddCourses
-          onClose={setAddCourses}
-          setNewCourse={setCourses}
-          currentCourses={courses}
+          onClose={() => setAddCourses(false)}
+          setNewCourse={handleAddCourse}
         />
       )}
     </div>

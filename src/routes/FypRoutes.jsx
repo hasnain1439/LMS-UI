@@ -17,6 +17,7 @@ import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
+import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -45,7 +46,8 @@ function FypRoutes() {
         { path: "enrollments", element: <EnrollmentsPage /> },
         { path: "profile", element: <ProfilePage /> }, // Profile page
         { path: "update-profile", element: <UpdateProfile /> }, // Update profile page
-        {path: "change-password", element: <ChangePassword/>}
+        {path: "change-password", element: <ChangePassword/>},
+        { path: "course/:courseId", element: <CourseDetail /> }
       ],
     },
 
