@@ -1,9 +1,11 @@
 import QuizzesSection from "./feature/QuizzesSection";
 
 function QuizzesPage() {
-  return(
-    <QuizzesSection/>
-  )
+  return (
+    <div className="w-full">
+      <QuizzesSection />
+    </div>
+  );
 }
 
 export default QuizzesPage;

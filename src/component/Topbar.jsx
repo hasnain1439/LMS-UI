@@ -5,8 +5,8 @@ import profileImg from "../assets/icons/avatar.svg";
 export default function Topbar({ title, onMenuClick }) {
   return (
     <header className="h-16 flex items-center justify-between bg-white px-6 shadow-soft border-b border-gray-light">
+      {/* Left section: Menu button + Page title */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* ✅ Menu button */}
         <FaBars
           className="block lg:hidden text-lg sm:text-xl cursor-pointer text-gray-dark"
           onClick={onMenuClick}
@@ -14,6 +14,7 @@ export default function Topbar({ title, onMenuClick }) {
         <h2 className="text-md sm:text-lg font-semibold text-gray-dark">{title}</h2>
       </div>
 
+      {/* Right section: Notifications + Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
         <div className="relative">
           <CiBellOn className="text-gray-dark text-xl sm:text-2xl cursor-pointer hover:text-primary" />
@@ -21,7 +22,11 @@ export default function Topbar({ title, onMenuClick }) {
         </div>
 
         <div className="flex items-center sm:gap-2 bg-gray-light hover:bg-primary-light hover:text-white sm:px-3 sm:py-1.5 rounded-xl cursor-pointer transition-all">
-          <img src={profileImg} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-light bg-white" alt="profile" />
+          <img
+            src={profileImg}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-light bg-white"
+            alt="profile"
+          />
           <h3 className="font-medium hidden sm:block">John Doe</h3>
         </div>
       </div>

@@ -102,22 +102,24 @@ export default function AboutCourses() {
     <div className="space-y-6">
       {/* Search + Add */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5">
-        <div className="w-full sm:w-1/3 flex items-center gap-2 rounded-md px-2 focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray transition">
-          <CiSearch className="text-gray" />
+        {/* Search Box */}
+        <div className="w-full sm:w-1/3 flex items-center gap-2 rounded-xl border border-gray px-3 py-2 focus-within:ring-2 focus-within:ring-primary transition bg-white">
+          <CiSearch className="text-gray text-lg" />
           <input
             type="search"
             placeholder="Search Course..."
-            className="py-2 px-3 outline-none border-none bg-transparent w-full text-gray-dark"
+            className="py-1 px-2 outline-none border-none bg-transparent w-full text-gray-dark"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
 
+        {/* Filter & Add Button */}
         <div className="flex items-center flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-3 py-2 w-full sm:w-48 border border-gray-light bg-white rounded-md outline-none text-gray-dark focus:border-primary focus:ring-1 focus:ring-primary"
+            className="px-3 py-2 w-full sm:w-48 border border-gray bg-white rounded-xl outline-none text-gray-dark focus:border-primary focus:ring-1 focus:ring-primary transition"
           >
             <option value="All">All Categories</option>
             <option value="Programming">Programming</option>
@@ -129,7 +131,7 @@ export default function AboutCourses() {
 
           <button
             onClick={() => setAddCourses(true)}
-            className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition"
+            className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl flex items-center justify-center gap-2 shadow-soft transition"
           >
             <FaPlus /> Add Course
           </button>

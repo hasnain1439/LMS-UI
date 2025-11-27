@@ -1,86 +1,198 @@
-import { useState } from "react";
-import { CiSearch } from "react-icons/ci";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
-import { QuizzesData as CurrentQuizzes } from "../../../../data/data";
+import { useEffect, useState } from "react";
+import { FaPlus, FaPencilAlt, FaTrash, FaRegEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useCourses } from "../../../../api/UseCourses";
+
+// Status badge styles
+const getStatusStyles = (status) => {
+  switch (status?.toLowerCase()) {
+    case "published":
+    case "active":
+      return "bg-success text-white";
+    case "draft":
+      return "bg-warning text-white";
+    case "archived":
+    case "closed":
+      return "bg-error text-white";
+    default:
+      return "bg-gray text-white";
+  }
+};
 
 export default function QuizzesSection() {
-  const [quizzes, setQuizzes] = useState(CurrentQuizzes);
+  const navigate = useNavigate();
+
+  const [quizzes, setQuizzes] = useState([]);
+  const [courseId, setCourseId] = useState("");
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const { courses, waiting, error: courseError } = useCourses();
+
+  // Fetch quizzes when courseId or status changes
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      setLoading(true);
+      setError("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("You must be logged in to view quizzes.");
+        setLoading(false);
+        return;
+      }
+
+      const params = {};
+      if (courseId) params.courseId = courseId;
+      if (status) params.status = status;
+
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/quizzes/teacher-quizzes",
+          {
+            params,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setQuizzes(res.data.quizzes || []);
+      } catch (err) {
+        console.error("Error loading quizzes:", err);
+        if (err.response?.status === 401) {
+          setError("Unauthorized. Please login again.");
+          navigate("/login"); // redirect to login if token invalid
+        } else {
+          setError("Failed to load quizzes. Please try again.");
+        }
+        setQuizzes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, [courseId, status]);
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Header */}
+    <div className="w-full space-y-6">
+      {/* Header: Filters + Add Button */}
       <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-5">
-        {/* Search Input */}
-        <div className="w-full sm:w-1/3 flex items-center gap-2 rounded-md border border-gray-300 px-2 focus-within:ring-2 focus-within:ring-primary transition">
-          <CiSearch className="text-gray-500" />
-          <input
-            type="search"
-            placeholder="Search Quiz..."
-            className="py-2 px-3 outline-none border-none bg-transparent w-full text-gray-700 placeholder:text-gray-400"
-          />
-        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          {/* Filter by Course */}
+          <div className="flex flex-col">
+            {waiting && (
+              <p className="text-gray-dark mb-1">Loading courses...</p>
+            )}
+            {courseError && <p className="text-error mb-1">{courseError}</p>}
+            <select
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value)}
+              className="px-3 py-2 w-full sm:w-48 border border-gray bg-white rounded-xl text-gray-dark"
+            >
+              <option value="">All Courses</option>
+              {courses?.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Filter and Add Button */}
-        <div className="flex items-center flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <select className="px-3 py-2 w-full sm:w-48 border border-gray-300 bg-white rounded-md outline-none text-gray-700 focus:border-primary focus:ring-1 focus:ring-primary">
-            <option value="All">All Categories</option>
-            <option value="Programming">Programming</option>
-            <option value="Design">Design</option>
-            <option value="Database">Database</option>
+          {/* Filter by Status */}
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="px-3 py-2 w-full sm:w-40 border border-gray bg-white rounded-xl text-gray-dark"
+          >
+            <option value="">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
           </select>
 
-          <button className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 shadow-card transition">
+          {/* Add Quiz Button */}
+          <button
+            onClick={() => navigate("create-quizzes")}
+            className="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-xl flex items-center justify-center gap-2"
+          >
             <FaPlus /> Add Quiz
           </button>
         </div>
       </div>
 
-      {/* ✅ Responsive Scrollable Table */}
-      {/* ✅ Responsive Scrollable Table */}
-      <div className="w-full overflow-x-auto rounded-lg shadow-sm bg-white">
-        <table className="min-w-max w-full text-sm sm:text-base">
-          <thead className="bg-gray-100 text-gray-600">
-            <tr>
-              <th className="py-2 px-4 font-normal text-left whitespace-nowrap">
-                Quiz Title
-              </th>
-              <th className="py-2 px-4 font-normal text-left whitespace-nowrap">
-                Course
-              </th>
-              <th className="py-2 px-4 font-normal text-left">Questions</th>
-              <th className="py-2 px-4 font-normal text-left whitespace-nowrap">
-                Total Marks
-              </th>
-              <th className="py-2 px-4 font-normal text-left">Attempts</th>
-              <th className="py-2 px-4 font-normal text-left">Status</th>
-              <th className="py-2 px-4 font-normal text-center">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {quizzes.map((q, i) => (
-              <tr
-                key={i}
-                className="border-b hover:bg-gray-50 transition-colors duration-200"
-              >
-                <td className="py-2 px-4 text-gray-900 whitespace-nowrap">
-                  {q.title}
-                </td>
-                <td className="py-2 px-4 text-gray-900 whitespace-nowrap">
-                  {q.course}
-                </td>
-                <td className="py-2 px-4 text-gray-900">{q.questions}</td>
-                <td className="py-2 px-4 text-gray-900">{q.totalMarks}</td>
-                <td className="py-2 px-4 text-gray-900">{q.attempts}</td>
-                <td className="py-2 px-4 text-gray-900">{q.status}</td>
-                <td className="py-2 px-4 text-gray-900 text-center flex justify-center gap-3">
-                  <FaEdit className="text-indigo-600 cursor-pointer" />
-                  <FaTrash className="text-red-500 cursor-pointer" />
-                </td>
+      {/* Table */}
+      <div className="overflow-x-auto w-full bg-white rounded-2xl shadow-card border border-gray-light">
+        {loading ? (
+          <p className="text-center py-4">Loading quizzes...</p>
+        ) : error ? (
+          <p className="text-center py-4 text-error">{error}</p>
+        ) : (
+          <table className="min-w-[900px] w-full text-sm sm:text-base">
+            <thead className="text-gray-dark uppercase text-xs sm:text-sm font-semibold tracking-wider border-b border-gray">
+              <tr>
+                <th className="py-3 px-4 text-left">Quiz Title</th>
+                <th className="py-3 px-4 text-left">Course</th>
+                <th className="py-3 px-4 text-left">Questions</th>
+                <th className="py-3 px-4 text-left whitespace-nowrap">
+                  Total Marks
+                </th>
+                <th className="py-3 px-4 text-left">Attempts</th>
+                <th className="py-3 px-4 text-left">Status</th>
+                <th className="py-3 px-4 text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-gray-dark divide-y divide-gray-light">
+              {quizzes.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-4">
+                    No quizzes found
+                  </td>
+                </tr>
+              ) : (
+                quizzes.map((q, i) => (
+                  <tr
+                    key={i}
+                    className="hover:bg-gray-100 transition duration-150"
+                  >
+                    <td className="py-3 px-4 whitespace-nowrap">{q.title}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      {q.courseName}
+                    </td>
+                    <td className="py-3 px-4">{q.totalQuestions}</td>
+                    <td className="py-3 px-4">{q.totalMarks}</td>
+                    <td className="py-3 px-4">{q.submissionCount}</td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${getStatusStyles(
+                          q.status
+                        )}`}
+                      >
+                        {q.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 flex justify-center items-center gap-3">
+                      <FaRegEye
+                        className="text-gray hover:text-primary cursor-pointer transition"
+                        title="View"
+                      />
+                      <FaPencilAlt
+                        className="text-gray hover:text-primary cursor-pointer transition"
+                        title="Edit"
+                      />
+                      <FaTrash
+                        className="text-error hover:text-error/80 cursor-pointer transition"
+                        title="Delete"
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
+// ContextApi.jsx
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
+// Named export for context
 export const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
@@ -12,7 +14,6 @@ export const UserProvider = ({ children }) => {
       const res = await axios.get("http://localhost:5000/api/auth/profile", {
         withCredentials: true,
       });
-
       setUser(res.data.user);
     } catch (err) {
       console.log(err);
@@ -39,16 +40,10 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const contextValue = {
-    user,
-    setUser,
-    loading,
-    fetchUser,
-    logout,
-  };
-
   return (
-    <UserContext.Provider value={contextValue}>
+    <UserContext.Provider
+      value={{ user, setUser, loading, fetchUser, logout }}
+    >
       {children}
     </UserContext.Provider>
   );

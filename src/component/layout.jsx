@@ -16,12 +16,11 @@ function TeacherLayout() {
 
   return (
     <div className="flex h-screen bg-gray-light relative overflow-hidden">
-      {/* ✅ Pass isOpen and setIsOpen */}
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <div className="flex flex-col flex-1">
-        {/* ✅ Toggle button in Topbar */}
+      <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar title={pageTitle} onMenuClick={() => setIsOpen(!isOpen)} />
-        <main className="flex-1 p-6 overflow-y-auto">
+        {/* Make main scrollable without breaking horizontal scroll */}
+        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

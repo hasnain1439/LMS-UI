@@ -18,6 +18,7 @@ import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile"
 import TeacherDashboard from "../page/adminDashboard/dashboard";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
+import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz"; // Keep import
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -42,12 +43,19 @@ function FypRoutes() {
       children: [
         { index: true, element: <DashboardHome /> },
         { path: "courses", element: <CoursesPage /> },
-        { path: "quizzes", element: <QuizzesPage /> },
+        // ✅ Corrected: Quizzes is now a parent path with children
+        {
+          path: "quizzes",
+          children: [
+            { index: true, element: <QuizzesPage /> }, // Full path: /teacher/quizzes
+            { path: "create-quizzes", element: <CreateQuiz /> }, // Full path: /teacher/quizzes/create
+          ],
+        },
         { path: "enrollments", element: <EnrollmentsPage /> },
-        { path: "profile", element: <ProfilePage /> }, // Profile page
-        { path: "update-profile", element: <UpdateProfile /> }, // Update profile page
-        {path: "change-password", element: <ChangePassword/>},
-        { path: "course/:courseId", element: <CourseDetail /> }
+        { path: "profile", element: <ProfilePage /> },
+        { path: "update-profile", element: <UpdateProfile /> },
+        { path: "change-password", element: <ChangePassword /> },
+        { path: "course/:courseId", element: <CourseDetail /> },
       ],
     },
 

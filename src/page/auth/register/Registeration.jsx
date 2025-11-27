@@ -43,6 +43,7 @@ const Registration = () => {
         }
       );
       const token = res.data.token;
+      localStorage.setItem("token",token)
       console.log("✅ Registration successful:", res.data);
       navigate(`/verify-email/${token}`);
       resetForm();
