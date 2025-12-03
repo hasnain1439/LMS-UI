@@ -23,6 +23,7 @@ export default {
         // ✅ Neutral Colors
         white: "#FFFFFF",
         "gray-light": "#F3F4F6",
+        "gray-text": "#718096",
         gray: "#9CA3AF",
         "gray-dark": "#374151",
 

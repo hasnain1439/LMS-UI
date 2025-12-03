@@ -3,6 +3,7 @@ import { Plus, Trash2, XCircle } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // Helper function to create a fresh empty question object
 const createEmptyQuestion = () => ({
@@ -12,6 +13,11 @@ const createEmptyQuestion = () => ({
 });
 
 const QuizSchema = Yup.object().shape({
+  // 👇 ADDED TITLE VALIDATION
+  title: Yup.string()
+    .required("Quiz title is required.")
+    .min(3, "Title must be at least 3 characters.")
+    .max(255, "Title cannot exceed 255 characters."),
   courseId: Yup.string().required("Selecting a course is required."),
   timeLimitMinutes: Yup.number()
     .required("Time limit is required.")
@@ -36,61 +42,68 @@ const QuizSchema = Yup.object().shape({
 export default function CreateQuiz() {
   const [courses, setCourses] = useState([]);
   const [status, setStatus] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const token = localStorage.getItem("token");
         const res = await axios.get(
           "http://localhost:5000/api/courses/getAllCourses",
           {
-            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
         setCourses(res.data.courses || []);
       } catch (err) {
         console.error("Failed to fetch courses", err);
+        if (err.response?.status === 401) {
+          navigate("/login");
+        }
         setStatus("Failed to load courses.");
       }
     };
     fetchCourses();
-  }, []);
+  }, [navigate]);
 
   const formik = useFormik({
     initialValues: {
+      title: "", // 👇 ADDED TITLE STATE
       courseId: "",
       timeLimitMinutes: "",
       marksPerQuestion: "",
       deadline: "",
-      questions: [createEmptyQuestion()], // Initialize directly in Formik
+      questions: [createEmptyQuestion()],
     },
     validationSchema: QuizSchema,
-    // Removed enableReinitialize to prevent form state resets on keystrokes
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       setSubmitting(true);
       setStatus("");
       try {
-        const token = localStorage.getItem("token");
         const payload = {
           ...values,
+          // title is already in values, so it's included automatically
           timeLimitMinutes: Number(values.timeLimitMinutes),
           marksPerQuestion: Number(values.marksPerQuestion),
           deadline: new Date(values.deadline).toISOString(),
         };
+
         await axios.post(
           "http://localhost:5000/api/quizzes/create-quiz",
           payload,
           {
-            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
         alert("Quiz created successfully!");
         resetForm();
+        navigate(-1);
       } catch (err) {
         console.error(err);
-        setStatus(err.response?.data?.error || "Failed to create quiz");
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setStatus(err.response?.data?.error || "Failed to create quiz");
+        }
       } finally {
         setSubmitting(false);
       }
@@ -108,7 +121,6 @@ export default function CreateQuiz() {
   };
 
   const handleQuestionChange = (qIndex, field, value) => {
-    // Create shallow copies to avoid mutation
     const newQuestions = formik.values.questions.map((q, i) => {
       if (i === qIndex) {
         if (field === "questionText") {
@@ -121,12 +133,12 @@ export default function CreateQuiz() {
       }
       return q;
     });
-    
+
     formik.setFieldValue("questions", newQuestions);
   };
 
   const handleCorrectOptionChange = (qIndex, value) => {
-    const newQuestions = formik.values.questions.map((q, i) => 
+    const newQuestions = formik.values.questions.map((q, i) =>
       i === qIndex ? { ...q, correctOptionIndex: Number(value) } : q
     );
     formik.setFieldValue("questions", newQuestions);
@@ -143,6 +155,29 @@ export default function CreateQuiz() {
 
       {/* Quiz Basic Settings */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 👇 ADDED TITLE INPUT FIELD */}
+        <div className="flex flex-col md:col-span-3">
+          <label className="font-medium mb-1">Quiz Title</label>
+          <input
+            type="text"
+            name="title"
+            value={formik.values.title}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            placeholder="e.g. Midterm Exam - Web Development"
+            className={`border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-300 ${
+              formik.touched.title && formik.errors.title
+                ? "border-red-400"
+                : "border-gray-300"
+            }`}
+          />
+          {formik.touched.title && formik.errors.title && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <XCircle size={14} /> {formik.errors.title}
+            </p>
+          )}
+        </div>
+
         <div className="flex flex-col">
           <label className="font-medium mb-1">Select Course</label>
           <select
@@ -187,11 +222,12 @@ export default function CreateQuiz() {
             }`}
             placeholder="60"
           />
-          {formik.touched.timeLimitMinutes && formik.errors.timeLimitMinutes && (
-            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-              <XCircle size={14} /> {formik.errors.timeLimitMinutes}
-            </p>
-          )}
+          {formik.touched.timeLimitMinutes &&
+            formik.errors.timeLimitMinutes && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <XCircle size={14} /> {formik.errors.timeLimitMinutes}
+              </p>
+            )}
         </div>
 
         <div className="flex flex-col">
@@ -210,11 +246,12 @@ export default function CreateQuiz() {
             }`}
             placeholder="1.0"
           />
-          {formik.touched.marksPerQuestion && formik.errors.marksPerQuestion && (
-            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-              <XCircle size={14} /> {formik.errors.marksPerQuestion}
-            </p>
-          )}
+          {formik.touched.marksPerQuestion &&
+            formik.errors.marksPerQuestion && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <XCircle size={14} /> {formik.errors.marksPerQuestion}
+              </p>
+            )}
         </div>
 
         <div className="flex flex-col md:col-span-3">
@@ -281,7 +318,9 @@ export default function CreateQuiz() {
                   type="text"
                   value={opt}
                   placeholder={`Option ${idx + 1}`}
-                  onChange={(e) => handleQuestionChange(i, idx, e.target.value)}
+                  onChange={(e) =>
+                    handleQuestionChange(i, idx, e.target.value)
+                  }
                   className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-blue-300"
                 />
               ))}
@@ -314,15 +353,17 @@ export default function CreateQuiz() {
         type="submit"
         disabled={formik.isSubmitting}
         className={`w-full py-3 rounded-lg text-lg font-semibold shadow-md transition ${
-          formik.isSubmitting 
-            ? "bg-gray-400 cursor-not-allowed" 
+          formik.isSubmitting
+            ? "bg-gray-400 cursor-not-allowed"
             : "bg-green-600 hover:bg-green-700 text-white"
         }`}
       >
         {formik.isSubmitting ? "Creating Quiz..." : "Create Quiz"}
       </button>
 
-      {status && <p className="text-red-500 text-center mt-2">{status}</p>}
+      {status && (
+        <p className="text-red-500 text-center mt-2">{status}</p>
+      )}
     </form>
   );
 }

@@ -6,10 +6,9 @@ export const GetCourseById = async (courseId) => {
   try {
     const res = await axios.get(
       `http://localhost:5000/api/courses/${courseId}`,
-      { withCredentials: true }
+      { withCredentials: true } // ✅ Correct
     );
 
-    // Backend sends { course: {...} }, return it directly
     return res.data.course;
   } catch (error) {
     console.error(

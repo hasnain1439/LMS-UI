@@ -19,6 +19,10 @@ import TeacherDashboard from "../page/adminDashboard/dashboard";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
 import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz"; // Keep import
+import EditQuiz from "../page/adminDashboard/qizzes/feature/EditQuiz";
+import EditQuestion from "../page/adminDashboard/qizzes/feature/EditQuestion";
+import AddQuestion from "../page/adminDashboard/qizzes/feature/AddQuestion";
+import QuizDetails from "../page/adminDashboard/qizzes/feature/QuizDetails";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -49,6 +53,22 @@ function FypRoutes() {
           children: [
             { index: true, element: <QuizzesPage /> }, // Full path: /teacher/quizzes
             { path: "create-quizzes", element: <CreateQuiz /> }, // Full path: /teacher/quizzes/create
+            {
+              path: "edit-quiz/:quizId",
+              element: <EditQuiz />,
+            },
+            {
+              path: "edit-quiz/:quizId/questions/:questionId",
+              element: <EditQuestion />,
+            },
+            {
+              path: "edit-quiz/:quizId/add-question",
+              element: <AddQuestion />,
+            },
+            {
+              path: "view-quiz/:quizId",
+              element: <QuizDetails />,
+            },
           ],
         },
         { path: "enrollments", element: <EnrollmentsPage /> },

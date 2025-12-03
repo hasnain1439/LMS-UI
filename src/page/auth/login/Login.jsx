@@ -23,38 +23,46 @@ const Login = () => {
 
   const loginHandler = async (values, { resetForm }) => {
     try {
-      // Create FormData for file upload
+      // 1. Prepare Form Data
       const formData = new FormData();
       if (values.email) formData.append("email", values.email);
       if (values.rollNumber) formData.append("rollNumber", values.rollNumber);
       if (values.password) formData.append("password", values.password);
       if (values.faceImage) formData.append("faceImage", values.faceImage);
 
-      // Call login API
+      // 2. Send Request
       const res = await axios.post(
         "http://localhost:5000/api/auth/login",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true, // 🔑 allow cookies
+          withCredentials: true, // ✅ CRITICAL: This saves the cookie in the browser
         }
       );
 
-      console.log("✅ Login Successful:", res.data);
-      alert("✅ Login Successful");
+      console.log("Login Success:", res.data);
 
-      // ✅ Role-based redirection
-      const role = res.data.user.role;
+      // 3. Redirect based on role
+      // Note: Backend sends user object in res.data.user
+      const role = res.data.user?.role;
+
       if (role === "teacher") {
         navigate("/teacher");
-      } else {
+      } else if (role === "student") {
         navigate("/student");
+      } else {
+        navigate("/dashboard"); // Fallback for admin or others
       }
 
       resetForm();
     } catch (error) {
       console.log("❌ Login Error:", error.response?.data || error.message);
-      alert(error.response?.data?.error || "Login failed");
+      
+      const errorMsg = error.response?.data?.error || "Login failed";
+      const errorDetails = error.response?.data?.details || "";
+      
+      // Show specific error from backend (e.g. "Face verification failed")
+      alert(`${errorMsg}\n${errorDetails}`);
     }
   };
 

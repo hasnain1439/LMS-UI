@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// ✅ Pure function to fetch all courses (with optional filters)
 export const GetCourses = async (filters = {}) => {
   try {
     const params = {};
