@@ -11,7 +11,7 @@ import ResetPassword from "../page/auth/resetPassword/ResetPassword";
 // ---- Teacher Dashboard Pages ----
 import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
 import QuizzesPage from "../page/adminDashboard/qizzes/index";
-import EnrollmentsPage from "../page/adminDashboard/enrollment/feature/EnrollmentsPage";
+import EnrollmentsPage from "../page/adminDashboard/enrollment/index.jsx";
 import CoursesPage from "../page/adminDashboard/courses";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
