@@ -36,14 +36,26 @@ const Login = () => {
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true, // ✅ CRITICAL: This saves the cookie in the browser
+          withCredentials: true, 
         }
       );
 
       console.log("Login Success:", res.data);
 
+      // ---------------------------------------------------------
+      // ✅ CRITICAL FIX: SAVE THE TOKEN HERE
+      // ---------------------------------------------------------
+      const token = res.data.token || res.data.accessToken;
+      
+      if (token) {
+        localStorage.setItem("token", token); // <--- THIS IS WHAT YOU WERE MISSING
+        localStorage.setItem("user", JSON.stringify(res.data.user)); // Optional: Save user info
+      } else {
+        console.warn("⚠️ No token received from server!");
+      }
+      // ---------------------------------------------------------
+
       // 3. Redirect based on role
-      // Note: Backend sends user object in res.data.user
       const role = res.data.user?.role;
 
       if (role === "teacher") {
@@ -51,7 +63,7 @@ const Login = () => {
       } else if (role === "student") {
         navigate("/student");
       } else {
-        navigate("/dashboard"); // Fallback for admin or others
+        navigate("/dashboard"); 
       }
 
       resetForm();
@@ -61,7 +73,6 @@ const Login = () => {
       const errorMsg = error.response?.data?.error || "Login failed";
       const errorDetails = error.response?.data?.details || "";
       
-      // Show specific error from backend (e.g. "Face verification failed")
       alert(`${errorMsg}\n${errorDetails}`);
     }
   };
