@@ -35,7 +35,7 @@ function FypRoutes() {
     },
     { path: "/register", element: <Registeration /> },
     { path: "/login", element: <Login /> },
-    { path: "/verify-email/:token", element: <VerifyEmail /> },
+    { path: "/verify-email/:userId/:token", element: <VerifyEmail /> },
     { path: "/resend-verification", element: <ResendVerification /> },
     { path: "/forget-password", element: <ForgotPassword /> },
     { path: "/reset-password/:token", element: <ResetPassword /> },

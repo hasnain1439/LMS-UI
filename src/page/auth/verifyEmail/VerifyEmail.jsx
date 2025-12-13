@@ -1,17 +1,27 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
 const VerifyEmail = () => {
-  const { token } = useParams();
+  // ✅ FIX 1: Get both userId and token from the URL
+  const { userId, token } = useParams(); 
+  const navigate = useNavigate(); 
   const [status, setStatus] = useState("loading"); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState("Verifying your email...");
 
   useEffect(() => {
+    // ✅ FIX 2: Validate we have both before calling the API
+    if (!userId || !token) {
+      setStatus("error");
+      setMessage("Invalid verification link. Missing User ID or Token.");
+      return;
+    }
+
     const verify = async () => {
       try {
+        // ✅ FIX 3: Send both userId and token in the URL
         const res = await axios.get(
-          `http://localhost:5000/api/auth/verify-email/${token}`
+          `http://localhost:5000/api/auth/verify-email/${userId}/${token}`
         );
         setMessage(res.data.message);
         setStatus("success");
@@ -25,17 +35,17 @@ const VerifyEmail = () => {
       }
     };
     verify();
-  }, [token]);
+  }, [userId, token]);
 
-  // ✅ Auto redirect after success (3s)
+  // ✅ Auto redirect using React Router
   useEffect(() => {
     if (status === "success") {
       const timer = setTimeout(() => {
-        window.location.href = "/login";
+        navigate("/login");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [status]);
+  }, [status, navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center px-4">
@@ -50,18 +60,6 @@ const VerifyEmail = () => {
         <div className="text-green-600">
           <h2 className="text-2xl font-semibold mb-2">{message}</h2>
           <p>You’ll be redirected to login shortly...</p>
-          <Link
-            to="/resend-verification"
-            className="text-blue-600 underline hover:text-blue-800"
-          >
-            Resend Verification Email
-          </Link>
-          <Link
-            to="/login"
-            className="text-blue-600 underline hover:text-blue-800 mt-3 inline-block"
-          >
-            Go to Login
-          </Link>
         </div>
       )}
 
