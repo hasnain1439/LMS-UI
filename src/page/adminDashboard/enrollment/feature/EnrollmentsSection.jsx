@@ -213,7 +213,7 @@ export default function EnrollmentsSection() {
           <table className="min-w-[900px] w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-white">
-                <th className="py-5 px-6 text-xs font-bold text-gray-900 uppercase tracking-wider">Student Name</th>
+                <th className="py-5 px-6 text-xs font-bold text-gray-900 uppercase tracking-wider whitespace-nowrap">Student Name</th>
                 <th className="py-5 px-6 text-xs font-bold text-gray-900 uppercase tracking-wider">Email</th>
                 <th className="py-5 px-6 text-xs font-bold text-gray-900 uppercase tracking-wider">Course</th>
                 <th className="py-5 px-6 text-xs font-bold text-gray-900 uppercase tracking-wider">Date</th>
@@ -229,17 +229,17 @@ export default function EnrollmentsSection() {
                 </tr>
               ) : (
                 enrollments.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition duration-150 group">
-                    <td className="py-4 px-6 text-sm font-semibold text-gray-800">{item.studentName}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{item.studentEmail}</td>
-                    <td className="py-4 px-6 text-sm font-medium text-blue-600">{item.courseName}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{new Date(item.enrolledAt).toLocaleDateString()}</td>
+                  <tr key={item.id} className="hover:bg-gray-light transition duration-150 group">
+                    <td className="py-4 px-6 text-sm font-semibold text-gray-text whitespace-nowrap">{item.studentName}</td>
+                    <td className="py-4 px-6 text-sm text-gray-text">{item.studentEmail}</td>
+                    <td className="py-4 px-6 text-sm font-medium text-blue-600 whitespace-nowrap">{item.courseName}</td>
+                    <td className="py-4 px-6 text-sm text-gray-text">{new Date(item.enrolledAt).toLocaleDateString()}</td>
                     <td className="py-4 px-6 w-48">
                       <div className="flex items-center gap-2">
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${item.progress}%` }}></div>
                         </div>
-                        <span className="text-xs font-medium text-gray-700">{item.progress}%</span>
+                        <span className="text-xs font-medium text-gray-text">{item.progress}%</span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -249,14 +249,14 @@ export default function EnrollmentsSection() {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex justify-center items-center gap-3">
-                        <button onClick={() => handleView(item)} className="text-gray-500 hover:text-blue-600 transition p-1" title="View Details">
+                        <button onClick={() => handleView(item)} className="text-gray-text hover:text-blue-600 transition p-1" title="View Details">
                           <FaRegEye size={18} />
                         </button>
                         {/* ✅ EDIT BUTTON */}
-                        <button onClick={() => handleEdit(item)} className="text-gray-500 hover:text-green-600 transition p-1" title="Edit">
+                        <button onClick={() => handleEdit(item)} className="text-gray-text hover:text-green-600 transition p-1" title="Edit">
                           <FaEdit size={18} />
                         </button>
-                        <button onClick={() => handleDropStudent(item.id)} className="text-gray-500 hover:text-red-600 transition p-1" title="Drop Student">
+                        <button onClick={() => handleDropStudent(item.id)} className="text-gray-text hover:text-red-600 transition p-1" title="Drop Student">
                           <FaTrash size={18} />
                         </button>
                       </div>
