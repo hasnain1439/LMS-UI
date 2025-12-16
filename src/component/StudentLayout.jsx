@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useMatches, Outlet } from "react-router-dom";
 import { 
-  FaChalkboardTeacher, 
-  FaBookOpen, 
-  FaClipboardList, 
-  FaUsers, 
+  FaHome, 
+  FaBook, 
+  FaList, 
+  FaClipboardCheck, 
   FaUser 
 } from "react-icons/fa";
-import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
+import Sidebar from "./Sidebar"; // Adjust path if needed
+import Topbar from "./Topbar";   // Adjust path if needed
 
-function TeacherLayout() {
+function StudentLayout() {
   const [isOpen, setIsOpen] = useState(false);
   const matches = useMatches();
 
@@ -21,27 +21,27 @@ function TeacherLayout() {
     document.title = `${pageTitle} | LMS`;
   }, [pageTitle]);
 
-  // 1. Define the Teacher's Navigation Menu Here
-  const teacherNavItems = [
-    { path: "/teacher", label: "Dashboard", icon: <FaChalkboardTeacher /> },
-    { path: "/teacher/courses", label: "Courses", icon: <FaBookOpen /> },
-    { path: "/teacher/quizzes", label: "Quizzes", icon: <FaClipboardList /> },
-    { path: "/teacher/enrollments", label: "Enrollments", icon: <FaUsers /> },
-    { path: "/teacher/profile", label: "Profile", icon: <FaUser /> },
+  // --- STUDENT NAVIGATION ITEMS ---
+  const studentNavItems = [
+    { path: "/student", label: "Dashboard", icon: <FaHome /> },
+    { path: "/student/my-courses", label: "My Courses", icon: <FaBook /> },
+    { path: "/student/catalog", label: "Course Catalog", icon: <FaList /> },
+    { path: "/student/quizzes", label: "Quizzes", icon: <FaClipboardCheck /> },
+    { path: "/student/profile", label: "Profile", icon: <FaUser /> },
   ];
 
   return (
     <div className="flex h-screen bg-gray-light relative overflow-hidden">
-      {/* 2. Pass the items to the Sidebar */}
-      <Sidebar 
+      {/* Pass student items to the shared Sidebar */}
+      <Sidebar
         isOpen={isOpen} 
         setIsOpen={setIsOpen} 
-        menuItems={teacherNavItems} 
+        menuItems={studentNavItems} 
       />
       
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar title={pageTitle} onMenuClick={() => setIsOpen(!isOpen)} />
-        {/* Make main scrollable without breaking horizontal scroll */}
+        
         <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
@@ -50,4 +50,4 @@ function TeacherLayout() {
   );
 }
 
-export default TeacherLayout;
+export default StudentLayout;

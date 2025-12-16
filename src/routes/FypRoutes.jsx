@@ -18,11 +18,20 @@ import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile"
 import TeacherDashboard from "../page/adminDashboard/dashboard";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
-import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz"; // Keep import
+import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz"; 
 import EditQuiz from "../page/adminDashboard/qizzes/feature/EditQuiz";
 import EditQuestion from "../page/adminDashboard/qizzes/feature/EditQuestion";
 import AddQuestion from "../page/adminDashboard/qizzes/feature/AddQuestion";
 import QuizDetails from "../page/adminDashboard/qizzes/feature/QuizDetails";
+
+// ---- Student Dashboard Pages ----
+import StudentLayout from "../component/StudentLayout"; 
+import StdDashboard from "../page/student/studentDashboard/index.jsx";
+import MyCourses from "../page/student/myCourses/index.jsx"; // Ensure this exports MyCoursesSection
+import BrowseCourses from "../page/student/allCourses/index.jsx"; // ✅ Updated Import
+import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx";
+import LearningView from "../page/student/allCourses/feature/LearningView.jsx";
+// import StudentCourseView from "../page/student/courseView/index.jsx"; // Placeholder for Learning View
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -43,32 +52,19 @@ function FypRoutes() {
     // ---- Teacher Dashboard Routes ----
     {
       path: "/teacher",
-      element: <TeacherDashboard />, // Layout with <Outlet />
+      element: <TeacherDashboard />, 
       children: [
         { index: true, element: <DashboardHome /> },
         { path: "courses", element: <CoursesPage /> },
-        // ✅ Corrected: Quizzes is now a parent path with children
         {
           path: "quizzes",
           children: [
-            { index: true, element: <QuizzesPage /> }, // Full path: /teacher/quizzes
-            { path: "create-quizzes", element: <CreateQuiz /> }, // Full path: /teacher/quizzes/create
-            {
-              path: "edit-quiz/:quizId",
-              element: <EditQuiz />,
-            },
-            {
-              path: "edit-quiz/:quizId/questions/:questionId",
-              element: <EditQuestion />,
-            },
-            {
-              path: "edit-quiz/:quizId/add-question",
-              element: <AddQuestion />,
-            },
-            {
-              path: "view-quiz/:quizId",
-              element: <QuizDetails />,
-            },
+            { index: true, element: <QuizzesPage /> },
+            { path: "create-quizzes", element: <CreateQuiz /> },
+            { path: "edit-quiz/:quizId", element: <EditQuiz /> },
+            { path: "edit-quiz/:quizId/questions/:questionId", element: <EditQuestion /> },
+            { path: "edit-quiz/:quizId/add-question", element: <AddQuestion /> },
+            { path: "view-quiz/:quizId", element: <QuizDetails /> },
           ],
         },
         { path: "enrollments", element: <EnrollmentsPage /> },
@@ -79,7 +75,45 @@ function FypRoutes() {
       ],
     },
 
-    // Optional: fallback route for 404
+    // ---- Student Dashboard Routes (UPDATED) ----
+    {
+      path: "/student",
+      element: <StudentLayout />, 
+      children: [
+        // 1. Dashboard Overview
+        { 
+            index: true, 
+            element: <StdDashboard />,
+            handle: { title: "Dashboard" } 
+        },
+        // 2. My Learning (Enrolled Courses)
+        {
+          path: "my-courses",
+          element: <MyCourses/>,
+          handle: {title: "My Courses"}
+        },
+        // 3. Catalog (Browse New Courses)
+        {
+          path: "catalog",
+          element: <BrowseCourses/>, // ✅ Using the new component we built
+          handle: {title: "Browse Courses"}
+        },
+        // 4. Public Course Details (Before Enrolling)
+        {
+            path: "course-details/:courseId",
+            element: <CourseDetails/>, // Replace with actual component
+            handle: { title: "Course Details" }
+        },
+        // 6. Profile
+        { 
+            path: "profile", 
+            element: <ProfilePage/>, // Reusing Teacher Profile for now (works if logic is same)
+            handle: { title: "My Profile" }
+        },
+      ],
+    },
+
+    // ---- Fallback Route ----
     {
       path: "*",
       element: (

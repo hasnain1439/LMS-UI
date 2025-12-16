@@ -15,7 +15,18 @@ import {
   AlertCircle,
   CheckCircle2,
   LayoutList,
+  XCircle,
 } from "lucide-react";
+
+// ✅ HELPER: Format UTC date to Local ISO string for input[type="datetime-local"]
+// This prevents the time from shifting when you refresh the page
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+  return localDate.toISOString().slice(0, 16);
+};
 
 // Validation Schema
 const QuizSchema = Yup.object().shape({
@@ -38,6 +49,7 @@ export default function EditQuiz() {
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState([]);
+  const [message, setMessage] = useState(null); // { type: 'success' | 'error', text: '' }
 
   // State for Formik initial values
   const [initialValues, setInitialValues] = useState({
@@ -52,9 +64,11 @@ export default function EditQuiz() {
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
+        const token = localStorage.getItem("token");
         const res = await axios.get(
           `http://localhost:5000/api/quizzes/${quizId}`,
           {
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
@@ -66,21 +80,19 @@ export default function EditQuiz() {
           title: data.title || "",
           timeLimit: data.timeLimitMinutes || "",
           marksPerQuestion: data.marksPerQuestion || "",
-          deadline: data.deadline
-            ? new Date(data.deadline).toISOString().slice(0, 16)
-            : "",
+          // ✅ FIX: Convert UTC database time to Local time for input
+          deadline: formatDateForInput(data.deadline),
           status: data.status || "draft",
         });
       } catch (err) {
         console.error("Failed to load quiz", err);
-        alert("Failed to load quiz details");
-        navigate(-1);
+        setMessage({ type: "error", text: "Failed to load quiz details." });
       } finally {
         setLoading(false);
       }
     };
     fetchQuiz();
-  }, [quizId, navigate]);
+  }, [quizId]);
 
   // 2. Setup Formik
   const formik = useFormik({
@@ -88,22 +100,46 @@ export default function EditQuiz() {
     enableReinitialize: true,
     validationSchema: QuizSchema,
     onSubmit: async (values, { setSubmitting }) => {
+      setMessage(null);
       try {
+        const token = localStorage.getItem("token");
+
+        // ✅ CRITICAL FIX: Calculate totals before sending
+        // The backend requires 'totalQuestions' and 'totalMarks'
+        const totalQ = questions.length;
+        const totalM = totalQ * Number(values.marksPerQuestion);
+
         await axios.put(
           `http://localhost:5000/api/quizzes/${quizId}`,
           {
             title: values.title,
             timeLimitMinutes: Number(values.timeLimit),
             marksPerQuestion: Number(values.marksPerQuestion),
+            // Convert local time back to UTC for database
             deadline: new Date(values.deadline).toISOString(),
             status: values.status,
+            
+            // ✅ Include the missing fields
+            totalQuestions: totalQ, 
+            totalMarks: totalM,
           },
-          { withCredentials: true }
+          { 
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true 
+          }
         );
-        alert("Quiz details updated successfully!");
+        
+        setMessage({ type: "success", text: "Quiz updated successfully!" });
+        
+        // Scroll to top to see success message
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
       } catch (err) {
         console.error(err);
-        alert(err.response?.data?.error || "Update failed");
+        setMessage({ 
+          type: "error", 
+          text: err.response?.data?.error || "Failed to update quiz." 
+        });
       } finally {
         setSubmitting(false);
       }
@@ -112,30 +148,31 @@ export default function EditQuiz() {
 
   // Handle Question Delete
   const handleDeleteQuestion = async (questionId) => {
-    if (!window.confirm("Are you sure you want to delete this question?"))
-      return;
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    
     try {
+      const token = localStorage.getItem("token");
       await axios.delete(
         `http://localhost:5000/api/quizzes/${quizId}/questions/${questionId}`,
-        { withCredentials: true }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true 
+        }
       );
       setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      setMessage({ type: "success", text: "Question deleted." });
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to delete question");
+      setMessage({ type: "error", text: "Failed to delete question." });
     }
   };
 
   // Helper for Status Badge Color
   const getStatusColor = (status) => {
     switch (status) {
-      case "published":
-        return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "draft":
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      case "closed":
-        return "bg-rose-100 text-rose-700 border-rose-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+      case "published": return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "draft": return "bg-amber-100 text-amber-700 border-amber-200";
+      case "closed": return "bg-rose-100 text-rose-700 border-rose-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
@@ -150,8 +187,9 @@ export default function EditQuiz() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800 pb-20">
+      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 py-8">
+        
         {/* --- Page Header --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -174,24 +212,33 @@ export default function EditQuiz() {
           </div>
 
           <div
-            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-2 ${getStatusColor(
-              formik.values.status
-            )}`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-2 ${getStatusColor(formik.values.status)}`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                formik.values.status === "published"
-                  ? "bg-emerald-500"
-                  : formik.values.status === "draft"
-                  ? "bg-amber-500"
-                  : "bg-rose-500"
+                formik.values.status === "published" ? "bg-emerald-500" :
+                formik.values.status === "draft" ? "bg-amber-500" : "bg-rose-500"
               }`}
             ></span>
             {formik.values.status}
           </div>
         </div>
 
+        {/* --- Success/Error Banner --- */}
+        {message && (
+          <div className={`p-4 rounded-xl border flex items-center gap-3 ${
+            message.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            {message.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+            <span className="font-medium">{message.text}</span>
+            <button onClick={() => setMessage(null)} className="ml-auto opacity-60 hover:opacity-100">
+              <XCircle size={18} />
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
           {/* --- Left Column: Settings Panel (Sticky) --- */}
           <div className="lg:col-span-4 lg:sticky lg:top-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -243,21 +290,6 @@ export default function EditQuiz() {
                       <option value="published">Published (Visible)</option>
                       <option value="closed">Closed (Ended)</option>
                     </select>
-                    <div className="absolute right-4 top-3.5 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 9l-7 7-7-7"
-                        ></path>
-                      </svg>
-                    </div>
                   </div>
                 </div>
 
@@ -300,8 +332,7 @@ export default function EditQuiz() {
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       className={`w-full px-4 py-2.5 rounded-lg border bg-gray-50 focus:bg-white outline-none transition-all duration-200 ${
-                        formik.touched.marksPerQuestion &&
-                        formik.errors.marksPerQuestion
+                        formik.touched.marksPerQuestion && formik.errors.marksPerQuestion
                           ? "border-red-300"
                           : "border-gray-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-50"
                       }`}
@@ -390,8 +421,7 @@ export default function EditQuiz() {
                     No questions yet
                   </h3>
                   <p className="text-gray-500 max-w-xs mx-auto">
-                    Start building your quiz by adding your first question
-                    above.
+                    Start building your quiz by adding your first question above.
                   </p>
                 </div>
               ) : (
@@ -410,7 +440,7 @@ export default function EditQuiz() {
                         </h3>
                       </div>
 
-                      {/* Actions - visible on hover/focus, or always on mobile */}
+                      {/* Actions */}
                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 bg-white sm:shadow-sm sm:border sm:border-gray-100 rounded-lg p-1">
                         <button
                           onClick={() => navigate(`questions/${q.id}`)}

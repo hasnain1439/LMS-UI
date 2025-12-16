@@ -1,27 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  FaBookOpen,
-  FaClipboardList,
-  FaUsers,
-  FaUser,
-  FaChalkboardTeacher,
-  FaSignOutAlt,
-} from "react-icons/fa";
+import { FaSignOutAlt } from "react-icons/fa";
 import { PiBookOpenTextThin } from "react-icons/pi";
 import { RxCross2 } from "react-icons/rx";
 import { logout } from "./LogoutButton";
 
-function Sidebar({ isOpen, setIsOpen }) {
+// Now accepts 'menuItems' as a prop
+function Sidebar({ isOpen, setIsOpen, menuItems }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
-  const navItems = [
-    { path: "/teacher", label: "Dashboard", icon: <FaChalkboardTeacher /> },
-    { path: "/teacher/courses", label: "Courses", icon: <FaBookOpen /> },
-    { path: "/teacher/quizzes", label: "Quizzes", icon: <FaClipboardList /> },
-    { path: "/teacher/enrollments", label: "Enrollments", icon: <FaUsers /> },
-    { path: "/teacher/profile", label: "Profile", icon: <FaUser /> },
-  ];
 
   const handleLogout = async () => {
     await logout();
@@ -34,6 +20,17 @@ function Sidebar({ isOpen, setIsOpen }) {
         ? "bg-primary text-white font-semibold shadow-sm"
         : "text-gray hover:bg-gray-light hover:text-primary-dark"
     }`;
+
+  // Reusable Nav Content to avoid duplicating code for Mobile/Desktop
+  const NavContent = () => (
+    <nav className="flex flex-col gap-2 p-4">
+      {menuItems.map((item, idx) => (
+        <Link to={item.path} className={linkClass(item.path)} key={idx}>
+          {item.icon} {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
 
   return (
     <>
@@ -48,14 +45,9 @@ function Sidebar({ isOpen, setIsOpen }) {
               LMS Dashboard
             </h2>
           </div>
-
-          <nav className="flex flex-col gap-2 p-4">
-            {navItems.map((item, idx) => (
-              <Link to={item.path} className={linkClass(item.path)} key={idx}>
-                {item.icon} {item.label}
-              </Link>
-            ))}
-          </nav>
+          
+          {/* Render the Nav Items passed via props */}
+          <NavContent />
         </div>
 
         <div className="p-4 border-t border-gray-light">
@@ -88,21 +80,17 @@ function Sidebar({ isOpen, setIsOpen }) {
             onClick={() => setIsOpen(!isOpen)}
           />
 
-          <nav className="flex flex-col gap-2 p-4">
-            {navItems.map((item, idx) => (
-              <Link to={item.path} className={linkClass(item.path)} key={idx}>
-                {item.icon} {item.label}
-              </Link>
-            ))}
-          </nav>
+          <NavContent />
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200"
-        >
-          <FaSignOutAlt /> Logout
-        </button>
+        <div className="p-4 border-t border-gray-light">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 p-3 rounded-lg bg-light-gray hover:bg-red-100 text-gray hover:text-error transition-all duration-200"
+          >
+            <FaSignOutAlt /> Logout
+          </button>
+        </div>
       </aside>
     </>
   );
