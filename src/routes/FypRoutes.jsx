@@ -30,7 +30,6 @@ import StdDashboard from "../page/student/studentDashboard/index.jsx";
 import MyCourses from "../page/student/myCourses/index.jsx"; // Ensure this exports MyCoursesSection
 import BrowseCourses from "../page/student/allCourses/index.jsx"; // ✅ Updated Import
 import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx";
-import LearningView from "../page/student/allCourses/feature/LearningView.jsx";
 // import StudentCourseView from "../page/student/courseView/index.jsx"; // Placeholder for Learning View
 
 function FypRoutes() {
