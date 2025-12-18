@@ -27,10 +27,10 @@ import QuizDetails from "../page/adminDashboard/qizzes/feature/QuizDetails";
 // ---- Student Dashboard Pages ----
 import StudentLayout from "../component/StudentLayout"; 
 import StdDashboard from "../page/student/studentDashboard/index.jsx";
-import MyCourses from "../page/student/myCourses/index.jsx"; // Ensure this exports MyCoursesSection
-import BrowseCourses from "../page/student/allCourses/index.jsx"; // ✅ Updated Import
+import MyCourses from "../page/student/myCourses/index.jsx"; 
+import BrowseCourses from "../page/student/allCourses/index.jsx"; 
 import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx";
-// import StudentCourseView from "../page/student/courseView/index.jsx"; // Placeholder for Learning View
+import StudentQuizzes from "../page/student/studentQuizzies/index.jsx"; // ✅ NEW IMPORT
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -94,19 +94,25 @@ function FypRoutes() {
         // 3. Catalog (Browse New Courses)
         {
           path: "catalog",
-          element: <BrowseCourses/>, // ✅ Using the new component we built
+          element: <BrowseCourses/>, 
           handle: {title: "Browse Courses"}
         },
         // 4. Public Course Details (Before Enrolling)
         {
             path: "course-details/:courseId",
-            element: <CourseDetails/>, // Replace with actual component
+            element: <CourseDetails/>, 
             handle: { title: "Course Details" }
+        },
+        // 5. Quizzes (✅ NEW ROUTE)
+        {
+            path: "quizzes",
+            element: <StudentQuizzes />,
+            handle: { title: "My Quizzes" }
         },
         // 6. Profile
         { 
             path: "profile", 
-            element: <ProfilePage/>, // Reusing Teacher Profile for now (works if logic is same)
+            element: <ProfilePage/>, 
             handle: { title: "My Profile" }
         },
       ],

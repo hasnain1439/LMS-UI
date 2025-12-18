@@ -139,7 +139,7 @@ export default function BrowseCourses() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
-      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 py-8">
+      <div className="w-full space-y-8">
         
         {/* Header Section (Same as before) */}
         <div className="flex flex-col gap-6">

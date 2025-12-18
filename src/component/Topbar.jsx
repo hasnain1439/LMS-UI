@@ -1,35 +1,118 @@
-import { CiBellOn } from "react-icons/ci";
-import { FaBars } from "react-icons/fa";
-import profileImg from "../assets/icons/avatar.svg";
+import React, { useContext, useState } from "react";
+import { UserContext } from "../context/ContextApi"; 
+import { useNavigate, useLocation } from "react-router-dom"; // ✅ Added useLocation
+import { FaBars, FaBell, FaUser, FaSignOutAlt } from "react-icons/fa";
+import { logout } from "./LogoutButton"; 
 
-export default function Topbar({ title, onMenuClick }) {
+const Topbar = ({ toggleSidebar }) => {
+  const { user } = useContext(UserContext);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation(); // ✅ Get current route
+
+  // ✅ HELPER: Determine Page Title based on URL
+  const getPageTitle = (path) => {
+    if (path.includes("/dashboard") || path === "/teacher" || path === "/student") return "Dashboard";
+    if (path.includes("/courses")) return "Courses";
+    if (path.includes("/quizzes")) return "Quizzes";
+    if (path.includes("/enrollments")) return "Enrollments";
+    if (path.includes("/profile")) return "My Profile";
+    if (path.includes("/catalog")) return "Course Catalog";
+    if (path.includes("/my-courses")) return "My Learning";
+    return "LMS Portal"; // Default Fallback
+  };
+
+  const currentTitle = getPageTitle(location.pathname);
+
+  // Helper to safely get profile image
+  const getProfileImage = (url) => {
+    if (!url) return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    if (url.startsWith("http") || url.startsWith("blob")) return url;
+    return `http://localhost:5000${url}`; 
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const userImage = user?.profilePicture || user?.profile_picture;
+  const userName = user ? `${user.firstName} ${user.lastName}` : "Loading...";
+  const userRole = user?.role || "Guest";
+
   return (
-    <header className="h-16 flex items-center justify-between bg-white px-6 shadow-soft border-b border-gray-light">
-      {/* Left section: Menu button + Page title */}
-      <div className="flex items-center gap-2 sm:gap-4">
-        <FaBars
-          className="block lg:hidden text-lg sm:text-xl cursor-pointer text-gray-dark"
-          onClick={onMenuClick}
-        />
-        <h2 className="text-md sm:text-lg font-semibold text-gray-dark">{title}</h2>
+    <div className="bg-white h-16 shadow-sm border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
+      
+      {/* --- Left Side: Toggle & Page Title --- */}
+      <div className="flex items-center gap-4">
+        {/* Menu Toggle (Mobile Only) */}
+        <button 
+          onClick={toggleSidebar} 
+          className="text-gray-500 hover:text-blue-600 transition lg:hidden p-2 rounded-md focus:outline-none"
+        >
+          <FaBars size={24} />
+        </button>
+        
+        {/* ✅ NEW: Page Title (Tab Name) */}
+        <h2 className="text-xl font-bold text-gray-800 tracking-tight">
+          {currentTitle}
+        </h2>
       </div>
 
-      {/* Right section: Notifications + Profile */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* --- Right Side: Icons & Profile --- */}
+      <div className="flex items-center gap-6">
+        <button className="relative text-gray-500 hover:text-blue-600 transition">
+          <FaBell size={20} />
+          <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+
+        {/* Profile Dropdown */}
         <div className="relative">
-          <CiBellOn className="text-gray-dark text-xl sm:text-2xl cursor-pointer hover:text-primary" />
-          <div className="absolute p-1 bg-error text-white text-[10px] rounded-full top-0 right-0.5"></div>
-        </div>
+          <button 
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center gap-3 focus:outline-none"
+          >
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold text-gray-800">{userName}</p>
+              <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+            </div>
+            
+            <img 
+              src={getProfileImage(userImage)} 
+              alt="Avatar" 
+              className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shadow-sm bg-gray-50"
+              onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; }}
+            />
+          </button>
 
-        <div className="flex items-center sm:gap-2 bg-gray-light hover:bg-primary-light hover:text-white sm:px-3 sm:py-1.5 rounded-xl cursor-pointer transition-all">
-          <img
-            src={profileImg}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-light bg-white"
-            alt="profile"
-          />
-          <h3 className="font-medium hidden sm:block">John Doe</h3>
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2">
+              <div className="px-4 py-2 border-b border-gray-100 sm:hidden">
+                <p className="text-sm font-bold text-gray-800">{userName}</p>
+              </div>
+              
+              <button 
+                onClick={() => {
+                   setDropdownOpen(false);
+                   navigate(user?.role === "admin" || user?.role === "teacher" ? "/teacher/profile" : "/student/profile");
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2"
+              >
+                <FaUser size={14} /> My Profile
+              </button>
+              
+              <button 
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+              >
+                <FaSignOutAlt size={14} /> Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </header>
+    </div>
   );
-}
+};
+
+export default Topbar;
