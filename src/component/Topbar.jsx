@@ -1,65 +1,52 @@
 import React, { useContext, useState } from "react";
 import { UserContext } from "../context/ContextApi"; 
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ Added useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { FaBars, FaBell, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { logout } from "./LogoutButton"; 
+import UserAvatar from "./UserAvatar"; // ✅ Uses the new component
 
 const Topbar = ({ toggleSidebar }) => {
   const { user } = useContext(UserContext);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ Get current route
+  const location = useLocation();
 
-  // ✅ HELPER: Determine Page Title based on URL
   const getPageTitle = (path) => {
     if (path.includes("/dashboard") || path === "/teacher" || path === "/student") return "Dashboard";
     if (path.includes("/courses")) return "Courses";
     if (path.includes("/quizzes")) return "Quizzes";
     if (path.includes("/enrollments")) return "Enrollments";
     if (path.includes("/profile")) return "My Profile";
-    if (path.includes("/catalog")) return "Course Catalog";
-    if (path.includes("/my-courses")) return "My Learning";
-    return "LMS Portal"; // Default Fallback
+    return "LMS Portal";
   };
 
   const currentTitle = getPageTitle(location.pathname);
-
-  // Helper to safely get profile image
-  const getProfileImage = (url) => {
-    if (!url) return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-    if (url.startsWith("http") || url.startsWith("blob")) return url;
-    return `http://localhost:5000${url}`; 
-  };
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
 
-  const userImage = user?.profilePicture || user?.profile_picture;
   const userName = user ? `${user.firstName} ${user.lastName}` : "Loading...";
   const userRole = user?.role || "Guest";
 
   return (
     <div className="bg-white h-16 shadow-sm border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
       
-      {/* --- Left Side: Toggle & Page Title --- */}
+      {/* Left Side */}
       <div className="flex items-center gap-4">
-        {/* Menu Toggle (Mobile Only) */}
         <button 
           onClick={toggleSidebar} 
           className="text-gray-500 hover:text-blue-600 transition lg:hidden p-2 rounded-md focus:outline-none"
         >
           <FaBars size={24} />
         </button>
-        
-        {/* ✅ NEW: Page Title (Tab Name) */}
         <h2 className="text-xl font-bold text-gray-800 tracking-tight">
           {currentTitle}
         </h2>
       </div>
 
-      {/* --- Right Side: Icons & Profile --- */}
+      {/* Right Side */}
       <div className="flex items-center gap-6">
         <button className="relative text-gray-500 hover:text-blue-600 transition">
           <FaBell size={20} />
@@ -70,18 +57,16 @@ const Topbar = ({ toggleSidebar }) => {
         <div className="relative">
           <button 
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-3 focus:outline-none"
+            className="flex items-center gap-3 focus:outline-none group"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-800">{userName}</p>
+              <p className="text-sm font-bold text-gray-800 group-hover:text-blue-600 transition">{userName}</p>
               <p className="text-xs text-gray-500 capitalize">{userRole}</p>
             </div>
             
-            <img 
-              src={getProfileImage(userImage)} 
-              alt="Avatar" 
-              className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shadow-sm bg-gray-50"
-              onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; }}
+            <UserAvatar 
+              src={user?.profilePicture || user?.profile_picture} 
+              className="w-10 h-10 rounded-full object-cover border-2 border-gray-100 shadow-sm bg-gray-50 group-hover:border-blue-200 transition"
             />
           </button>
 

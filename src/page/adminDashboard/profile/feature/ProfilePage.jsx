@@ -14,6 +14,9 @@ import {
 } from "react-icons/fa";
 import { logout } from "../../../../component/LogoutButton"; // Adjust path if needed
 
+// ✅ Define Backend URL (Easy to change later)
+const BACKEND_URL = "http://localhost:5000";
+
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,7 +38,7 @@ const ProfilePage = () => {
 
         // B. API Call
         const response = await axios.get(
-          "http://localhost:5000/api/auth/profile",
+          `${BACKEND_URL}/api/auth/profile`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -61,12 +64,18 @@ const ProfilePage = () => {
     fetchProfile();
   }, [navigate]);
 
-  // --- Helper: Force Image Refresh & Fix URLs ---
+  // --- ✅ HELPER: Strict Image Safety Check (Fixes 404 Error) ---
   const getProfileImage = (url) => {
-    if (!url) return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    // 1. Block empty values, "undefined", or "null" strings
+    if (!url || url === "undefined" || url === "null") {
+      return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    }
+
+    // 2. If it's a full URL (Google/Cloudinary), use it
     if (url.startsWith("http") || url.startsWith("blob")) return url;
-    // Add timestamp to force refresh if image changed recently
-    return `http://localhost:5000${url}?t=${new Date().getTime()}`;
+
+    // 3. If it's a local file, add backend URL + timestamp (Cache Busting)
+    return `${BACKEND_URL}${url}?t=${new Date().getTime()}`;
   };
 
   // --- Helper: Dynamic Role Base Path ---
@@ -124,11 +133,11 @@ const ProfilePage = () => {
 
   // --- Render Main Profile ---
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 mx-auto">
         
         {/* --- BLUE HEADER CARD --- */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden">
           {/* Blue Banner */}
           <div className="h-32 bg-gradient-to-r from-blue-600 to-blue-500"></div>
 
@@ -136,6 +145,7 @@ const ProfilePage = () => {
             <div className="relative flex flex-col sm:flex-row items-center sm:items-end -mt-12 mb-6">
               {/* Profile Image */}
               <img
+                // ✅ Apply Safe Helper Here
                 src={getProfileImage(user.profilePicture || user.profile_picture)}
                 onError={(e) => {
                   e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -169,14 +179,14 @@ const ProfilePage = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 mt-6 border-t border-gray-100 pt-6">
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={() => navigate(`${basePath}/update-profile`)} // ✅ Dynamic Path
+                  onClick={() => navigate(`${basePath}/update-profile`)} 
                   className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm text-sm font-medium"
                 >
                   <FaPen size={12} /> Edit Profile
                 </button>
 
                 <button
-                  onClick={() => navigate(`${basePath}/change-password`)} // ✅ Dynamic Path
+                  onClick={() => navigate(`${basePath}/change-password`)} 
                   className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition shadow-sm text-sm font-medium"
                 >
                   <FaKey size={12} /> Change Password
@@ -196,7 +206,7 @@ const ProfilePage = () => {
         {/* --- DETAILS GRID --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Contact Info */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-2xl shadow-md">
             <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2 flex items-center gap-2">
               Contact Information
             </h3>
@@ -232,7 +242,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Account Details */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-2xl shadow-md">
             <h3 className="text-lg font-bold text-gray-900 mb-6 border-b pb-2">
               Account Details
             </h3>
@@ -303,7 +313,6 @@ const ProfilePage = () => {
                     Key Skills
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {/* ✅ Safe Split: Checks if skills is a string before splitting */}
                     {typeof user.skills === "string" 
                       ? user.skills.split(",").map((skill, index) => (
                           <span

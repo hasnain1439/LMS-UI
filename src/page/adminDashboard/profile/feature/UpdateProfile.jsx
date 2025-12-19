@@ -5,6 +5,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaCamera, FaArrowLeft, FaSave, FaUser } from "react-icons/fa";
 
+// ✅ Define Backend URL
+const BACKEND_URL = "http://localhost:5000";
+
 const UpdateProfile = () => {
   const navigate = useNavigate();
   
@@ -17,6 +20,22 @@ const UpdateProfile = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [message, setMessage] = useState("");
 
+  // --- ✅ HELPER: Handle Image URLs (Backend vs Local Preview) ---
+  const getSafeImage = (imgSrc) => {
+    // 1. If no image, return placeholder
+    if (!imgSrc || imgSrc === "undefined" || imgSrc === "null") {
+      return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    }
+
+    // 2. If it's a "Blob" (New file selected from computer) OR External URL -> Return as is
+    if (imgSrc.startsWith("blob:") || imgSrc.startsWith("http")) {
+      return imgSrc;
+    }
+
+    // 3. If it's a backend path (e.g., "/uploads/photo.jpg") -> Prepend Backend URL
+    return `${BACKEND_URL}${imgSrc}`;
+  };
+
   // --- 1. Fetch Current User Data ---
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,11 +43,10 @@ const UpdateProfile = () => {
         const token = localStorage.getItem("token");
         if (!token) return navigate("/login");
 
-        const response = await axios.get("http://localhost:5000/api/auth/profile", {
+        const response = await axios.get(`${BACKEND_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         
-        // Handle response structure based on your previous controllers
         const userData = response.data.user || response.data;
         setUser(userData);
         
@@ -46,36 +64,31 @@ const UpdateProfile = () => {
     fetchProfile();
   }, [navigate]);
 
-  // --- 2. Validation Schema (Only firstName & lastName) ---
+  // --- 2. Validation Schema ---
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
   });
 
-  // --- 3. Handle Submit (Matches your Backend Logic) ---
+  // --- 3. Handle Submit ---
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
       const token = localStorage.getItem("token");
       
-      // ✅ Create FormData object to match backend 'req.body' and 'req.file'
       const formData = new FormData();
-      
-      // Backend expects: const { firstName, lastName } = req.body;
       formData.append("firstName", values.firstName);
       formData.append("lastName", values.lastName);
 
-      // Backend expects: if (req.file) ...
       if (selectedFile) {
         formData.append("profilePicture", selectedFile); 
       }
 
-      // ✅ Send Request
       const res = await axios.put(
-        "http://localhost:5000/api/auth/profile",
+        `${BACKEND_URL}/api/auth/profile`,
         formData,
         {
           headers: { 
-            "Content-Type": "multipart/form-data", // Crucial for req.file
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${token}`
           },
         }
@@ -83,12 +96,12 @@ const UpdateProfile = () => {
 
       setMessage("Profile updated successfully!");
       
-      // Update Local Storage to reflect name/image changes immediately
+      // Update Local Storage
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
       localStorage.setItem("user", JSON.stringify({ ...currentUser, ...res.data.user }));
 
       // Redirect back
-      setTimeout(() => navigate("/teacher/profile"), 1000);
+      setTimeout(() => navigate(-1), 1000);
 
     } catch (error) {
       console.error(error);
@@ -141,13 +154,15 @@ const UpdateProfile = () => {
             {({ setFieldValue, isSubmitting }) => (
               <Form className="space-y-6">
                 
-                {/* 1. Profile Picture (req.file) */}
+                {/* 1. Profile Picture Upload */}
                 <div className="flex flex-col items-center mb-8">
                   <div className="relative cursor-pointer group">
+                    {/* ✅ UPDATED IMAGE TAG WITH SAFE HELPER */}
                     <img 
-                      src={previewImage || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} 
+                      src={getSafeImage(previewImage)} 
                       alt="Profile Preview" 
                       className="w-32 h-32 rounded-full object-cover border-4 border-gray-100 shadow-sm bg-gray-50" 
+                      onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; }}
                     />
                     <label 
                       htmlFor="file-upload" 
@@ -165,6 +180,7 @@ const UpdateProfile = () => {
                         if(file) {
                           setSelectedFile(file);
                           setFieldValue("profilePicture", file);
+                          // Create local preview URL (Blob)
                           setPreviewImage(URL.createObjectURL(file));
                         }
                       }} 
@@ -173,7 +189,7 @@ const UpdateProfile = () => {
                   <p className="text-xs text-gray-400 mt-2">Update Profile Picture</p>
                 </div>
 
-                {/* 2. First Name (req.body.firstName) */}
+                {/* 2. First Name */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">First Name</label>
                     <div className="relative">
@@ -186,7 +202,7 @@ const UpdateProfile = () => {
                     <ErrorMessage name="firstName" component="p" className="text-red-500 text-xs mt-1" />
                 </div>
 
-                {/* 3. Last Name (req.body.lastName) */}
+                {/* 3. Last Name */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Last Name</label>
                     <div className="relative">

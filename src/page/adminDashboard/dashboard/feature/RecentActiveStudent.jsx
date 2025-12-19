@@ -1,30 +1,43 @@
 import React from "react";
-import { LuUsers } from "react-icons/lu";
+import { LuUsers, LuClock } from "react-icons/lu";
 
 function RecentActiveStudent({ data }) {
   if (!data || data.length === 0) {
     return (
-      <div className="p-5 text-center text-gray-500">
-        <h3 className="text-[1rem] font-semibold mb-2">Recent Activity</h3>
-        <p>No recent activity found.</p>
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-full flex flex-col justify-center items-center text-center">
+        <h3 className="text-lg font-bold text-gray-800 mb-2">Recent Activity</h3>
+        <p className="text-gray-400 text-sm">No recent activity found.</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <h3 className="text-[1rem] font-semibold">Recent Activity</h3>
-      <div className="flex flex-col gap-3 sm:gap-4 my-4">
+    <div className="bg-white p-6 rounded-3xl shadow-md h-full">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold text-gray-800">Recent Activity</h3>
+        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md cursor-pointer hover:bg-blue-100 transition">View All</span>
+      </div>
+      
+      <div className="flex flex-col space-y-4">
         {data.map((activity, index) => (
-          <div key={index} className="flex items-start sm:items-center gap-2 border-b border-gray-100 last:border-0 pb-2 last:pb-0">
-            <div className="p-3 bg-blue-600 text-white rounded-full flex items-center justify-center min-w-[44px]">
-              <LuUsers className="text-[20px]" />
+          <div 
+            key={index} 
+            className="group flex items-start gap-4 p-3  rounded-2xl hover:bg-gray-50 transition-colors duration-200"
+          >
+            {/* Icon Container */}
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+              <LuUsers className="text-lg" />
             </div>
-            <div className="ms-3">
-              <h3 className="text-[1rem] font-medium text-gray-800">
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-gray-800 truncate leading-tight">
                 {activity.message}
-              </h3>
-              <p className="text-sm text-gray-500">{activity.time}</p>
+              </h4>
+              <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                <LuClock size={12} />
+                <span>{activity.time}</span>
+              </div>
             </div>
           </div>
         ))}
