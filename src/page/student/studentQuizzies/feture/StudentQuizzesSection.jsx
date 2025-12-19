@@ -9,6 +9,7 @@ import {
   Search,
   Loader2,
   Calendar,
+  Eye
 } from "lucide-react";
 
 export default function StudentQuizzesSection() {
@@ -42,15 +43,12 @@ export default function StudentQuizzesSection() {
     fetchQuizzes();
   }, []);
 
-  // --- Filtering Logic (FIXED & SAFE) ---
+  // --- Filtering Logic ---
   const filteredQuizzes = quizzes.filter((quiz) => {
-    // ✅ FIX: Use "" if title or courseName is missing
     const title = quiz.title || "";
     const courseName = quiz.courseName || "";
-
     const searchLower = searchTerm.toLowerCase();
 
-    // ✅ Now this is safe and won't crash
     const matchesSearch =
       title.toLowerCase().includes(searchLower) ||
       courseName.toLowerCase().includes(searchLower);
@@ -61,20 +59,6 @@ export default function StudentQuizzesSection() {
     if (filter === "completed") return quiz.isSubmitted;
     return true;
   });
-
-  // --- Action Handler ---
-  const handleQuizAction = (quiz) => {
-    const now = new Date();
-    const deadline = new Date(quiz.deadline);
-
-    if (quiz.isSubmitted) {
-      alert(`You scored ${quiz.submissionScore} / ${quiz.totalMarks}`);
-    } else if (now > deadline) {
-      alert("This quiz is overdue and cannot be attempted.");
-    } else {
-      navigate(`/student/take-quiz/${quiz.id}`);
-    }
-  };
 
   // --- Helper: Format Date ---
   const formatDate = (dateString) => {
@@ -94,23 +78,37 @@ export default function StudentQuizzesSection() {
 
     if (quiz.isSubmitted) {
       return (
-        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1">
+        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
           <CheckCircle size={12} /> Completed
         </span>
       );
     }
     if (now > deadline) {
       return (
-        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold flex items-center gap-1">
+        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
           <AlertCircle size={12} /> Missed
         </span>
       );
     }
     return (
-      <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold flex items-center gap-1">
+      <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold flex items-center gap-1 w-fit">
         <Clock size={12} /> Pending
       </span>
     );
+  };
+
+  // --- Action Handler ---
+  const handleQuizAction = (quiz) => {
+    const now = new Date();
+    const deadline = new Date(quiz.deadline);
+
+    if (quiz.isSubmitted) {
+      navigate(`/student/quiz-result/${quiz.id}`);
+    } else if (now > deadline) {
+      alert("This quiz is overdue and cannot be attempted.");
+    } else {
+      navigate(`/student/take-quiz/${quiz.id}`);
+    }
   };
 
   if (loading)
@@ -122,7 +120,7 @@ export default function StudentQuizzesSection() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
-      <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 py-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* --- Header Section --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -170,7 +168,7 @@ export default function StudentQuizzesSection() {
           </div>
         </div>
 
-        {/* --- Quiz List --- */}
+        {/* --- Content Area --- */}
         {filteredQuizzes.length === 0 ? (
           <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
@@ -183,7 +181,72 @@ export default function StudentQuizzesSection() {
               You're all caught up! Check back later.
             </p>
           </div>
+        ) : filter === "completed" ? (
+          /* --- Table View for Completed Quizzes --- */
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 font-semibold tracking-wider">
+                    <th className="px-6 py-4">Quiz Name</th>
+                    <th className="px-6 py-4">Course</th>
+                    <th className="px-6 py-4 text-center">Score</th>
+                    <th className="px-6 py-4 text-center">Percentage</th>
+                    <th className="px-6 py-4 text-center">Status</th>
+                    <th className="px-6 py-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredQuizzes.map((quiz) => {
+                    const percentage = Math.round(
+                      (quiz.submissionScore / quiz.totalMarks) * 100
+                    );
+                    const isPass = percentage >= 50; // Example pass criteria
+
+                    return (
+                      <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          {quiz.title}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {quiz.courseName}
+                        </td>
+                        <td className="px-6 py-4 text-center font-mono font-medium text-gray-700">
+                          {quiz.submissionScore} / {quiz.totalMarks}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${isPass ? 'bg-green-500' : 'bg-red-500'}`} 
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs font-bold text-gray-600">{percentage}%</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                           <span className={`px-2 py-1 rounded-full text-xs font-bold ${isPass ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                             {isPass ? "Pass" : "Fail"}
+                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleQuizAction(quiz)}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-lg transition-colors flex items-center justify-end gap-1 ml-auto"
+                          >
+                            <Eye size={16} /> <span className="text-xs font-bold">View</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
+          /* --- Grid View for All/Todo Quizzes --- */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredQuizzes.map((quiz) => {
               const isOverdue =
@@ -192,7 +255,7 @@ export default function StudentQuizzesSection() {
               return (
                 <div
                   key={quiz.id}
-                  className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col"
+                  className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-md transition-all flex flex-col"
                 >
                   {/* Top Row: Course & Status */}
                   <div className="flex justify-between items-start mb-4">

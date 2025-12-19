@@ -88,7 +88,7 @@ export default function CourseDetails() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-20">
       {/* --- Hero Section --- */}
-      <div className="bg-blue-600 text-white pt-10 pb-20 px-6">
+      <div className="bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition">
             <ArrowLeft size={20} /> Back to Catalog
@@ -128,7 +128,7 @@ export default function CourseDetails() {
         
         {/* Left Column: Details */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <BookOpen className="text-blue-500" /> About this Course
             </h2>
@@ -137,7 +137,7 @@ export default function CourseDetails() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Class Schedule</h2>
             <div className="space-y-4">
               {course.schedules?.length > 0 ? (
@@ -168,7 +168,7 @@ export default function CourseDetails() {
 
         {/* Right Column: Sticky Action Card */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 sticky top-8">
+          <div className="bg-white rounded-2xl p-6 shadow-lg sticky top-8">
             <div className="mb-6 pb-6 border-b border-gray-100">
               <span className="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Enrolled</span>
               <div className="text-3xl font-bold text-gray-900 mt-1">{course.enrollmentCount || 0}</div>

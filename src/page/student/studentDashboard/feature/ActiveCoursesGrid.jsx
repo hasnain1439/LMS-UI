@@ -68,7 +68,7 @@ const ActiveCoursesGrid = () => {
   }, []);
 
   const handleContinue = (courseId) => {
-    navigate(`/student/course/${courseId}`);
+    navigate(`/student/my-course/${courseId}`);
   };
 
   // --- RENDER STATES ---

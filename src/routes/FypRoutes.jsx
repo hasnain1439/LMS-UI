@@ -18,19 +18,22 @@ import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile"
 import TeacherDashboard from "../page/adminDashboard/dashboard";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
-import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz"; 
+import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz";
 import EditQuiz from "../page/adminDashboard/qizzes/feature/EditQuiz";
 import EditQuestion from "../page/adminDashboard/qizzes/feature/EditQuestion";
 import AddQuestion from "../page/adminDashboard/qizzes/feature/AddQuestion";
 import QuizDetails from "../page/adminDashboard/qizzes/feature/QuizDetails";
 
 // ---- Student Dashboard Pages ----
-import StudentLayout from "../component/StudentLayout"; 
+import StudentLayout from "../component/StudentLayout";
 import StdDashboard from "../page/student/studentDashboard/index.jsx";
-import MyCourses from "../page/student/myCourses/index.jsx"; 
-import BrowseCourses from "../page/student/allCourses/index.jsx"; 
+import MyCourses from "../page/student/myCourses/index.jsx";
+import BrowseCourses from "../page/student/allCourses/index.jsx";
 import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx";
-import StudentQuizzes from "../page/student/studentQuizzies/index.jsx"; // ✅ NEW IMPORT
+import StudentQuizzes from "../page/student/studentQuizzies/index.jsx";
+import MyCourseDetails from "../page/student/studentDashboard/feature/MyCourseDetails.jsx";
+import TakeQuiz from "../page/student/studentQuizzies/feture/TakeQuiz.jsx";
+import QuizResult from "../page/student/studentQuizzies/feture/QuizResult.jsx";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -51,7 +54,7 @@ function FypRoutes() {
     // ---- Teacher Dashboard Routes ----
     {
       path: "/teacher",
-      element: <TeacherDashboard />, 
+      element: <TeacherDashboard />,
       children: [
         { index: true, element: <DashboardHome /> },
         { path: "courses", element: <CoursesPage /> },
@@ -61,8 +64,14 @@ function FypRoutes() {
             { index: true, element: <QuizzesPage /> },
             { path: "create-quizzes", element: <CreateQuiz /> },
             { path: "edit-quiz/:quizId", element: <EditQuiz /> },
-            { path: "edit-quiz/:quizId/questions/:questionId", element: <EditQuestion /> },
-            { path: "edit-quiz/:quizId/add-question", element: <AddQuestion /> },
+            {
+              path: "edit-quiz/:quizId/questions/:questionId",
+              element: <EditQuestion />,
+            },
+            {
+              path: "edit-quiz/:quizId/add-question",
+              element: <AddQuestion />,
+            },
             { path: "view-quiz/:quizId", element: <QuizDetails /> },
           ],
         },
@@ -74,47 +83,65 @@ function FypRoutes() {
       ],
     },
 
-    // ---- Student Dashboard Routes (UPDATED) ----
+    // ---- Student Dashboard Routes ----
     {
       path: "/student",
-      element: <StudentLayout />, 
+      element: <StudentLayout />,
       children: [
         // 1. Dashboard Overview
-        { 
-            index: true, 
-            element: <StdDashboard />,
-            handle: { title: "Dashboard" } 
+        {
+          index: true,
+          element: <StdDashboard />,
+          handle: { title: "Dashboard" },
         },
         // 2. My Learning (Enrolled Courses)
         {
           path: "my-courses",
-          element: <MyCourses/>,
-          handle: {title: "My Courses"}
+          element: <MyCourses />,
+          handle: { title: "My Courses" },
+        },
+        // ✅ NEW ROUTE: View Details for Enrolled Course
+        {
+          path: "my-course/:courseId",
+          element: <MyCourseDetails />, // Using the existing CourseDetails component
+          handle: { title: "My Course Detail" },
         },
         // 3. Catalog (Browse New Courses)
         {
           path: "catalog",
-          element: <BrowseCourses/>, 
-          handle: {title: "Browse Courses"}
+          element: <BrowseCourses />,
+          handle: { title: "Browse Courses" },
         },
         // 4. Public Course Details (Before Enrolling)
         {
-            path: "course-details/:courseId",
-            element: <CourseDetails/>, 
-            handle: { title: "Course Details" }
+          path: "course-details/:courseId",
+          element: <CourseDetails />,
+          handle: { title: "Course Details" },
         },
-        // 5. Quizzes (✅ NEW ROUTE)
+        // 5. Quizzes
         {
-            path: "quizzes",
-            element: <StudentQuizzes />,
-            handle: { title: "My Quizzes" }
+          path: "quizzes",
+          element: <StudentQuizzes />,
+          handle: { title: "My Quizzes" },
+        },
+        {
+          path: "take-quiz/:quizId",
+          element: <TakeQuiz />,
+          handle: { title: "Attempt Quiz" },
+        },
+        {
+          path: "quiz-result/:quizId",
+          element: <QuizResult />,
+          handle: { title: "Quiz Results" },
         },
         // 6. Profile
-        { 
-            path: "profile", 
-            element: <ProfilePage/>, 
-            handle: { title: "My Profile" }
+        {
+          path: "profile",
+          element: <ProfilePage />,
+          handle: { title: "My Profile" },
         },
+        { path: "update-profile", element: <UpdateProfile /> },
+        { path: "change-password", element: <ChangePassword /> },
       ],
     },
 

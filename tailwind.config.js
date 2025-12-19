@@ -26,6 +26,7 @@ export default {
         "gray-text": "#718096",
         gray: "#9CA3AF",
         "gray-dark": "#374151",
+        "gray-bg": "#f9fafb",
 
         // ✅ Chart Colors
         "chart-blue": "#2563EB",

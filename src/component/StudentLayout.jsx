@@ -1,25 +1,31 @@
 import { useState, useEffect } from "react";
-import { useMatches, Outlet } from "react-router-dom";
-import { 
-  FaHome, 
-  FaBook, 
-  FaList, 
-  FaClipboardCheck, 
-  FaUser 
+import { Outlet, useLocation } from "react-router-dom";
+import {
+  FaHome,
+  FaBook,
+  FaList,
+  FaClipboardCheck,
+  FaUser,
 } from "react-icons/fa";
-import Sidebar from "./Sidebar"; // Adjust path if needed
-import Topbar from "./Topbar";   // Adjust path if needed
+import Sidebar from "../component/Sidebar"; // ✅ Shared Sidebar Component
+import Topbar from "../component/Topbar";   // ✅ Shared Topbar Component
 
 function StudentLayout() {
-  const [isOpen, setIsOpen] = useState(false);
-  const matches = useMatches();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
-  const currentRoute = [...matches].reverse().find((m) => m.handle?.title);
-  const pageTitle = currentRoute?.handle?.title || "LMS";
-
+  // --- Dynamic Document Title ---
   useEffect(() => {
-    document.title = `${pageTitle} | LMS`;
-  }, [pageTitle]);
+    const path = location.pathname;
+    let title = "Student Dashboard";
+
+    if (path.includes("my-courses")) title = "My Courses";
+    else if (path.includes("catalog")) title = "Course Catalog";
+    else if (path.includes("quizzes")) title = "My Quizzes";
+    else if (path.includes("profile")) title = "Student Profile";
+
+    document.title = `${title} | LMS`;
+  }, [location]);
 
   // --- STUDENT NAVIGATION ITEMS ---
   const studentNavItems = [
@@ -31,18 +37,25 @@ function StudentLayout() {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-light relative overflow-hidden">
-      {/* Pass student items to the shared Sidebar */}
-      <Sidebar
-        isOpen={isOpen} 
-        setIsOpen={setIsOpen} 
-        menuItems={studentNavItems} 
-      />
+    <div className="flex h-screen bg-gray-50 font-sans text-gray-800">
       
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar title={pageTitle} onMenuClick={() => setIsOpen(!isOpen)} />
+      {/* 1. Sidebar (Fixed) */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        menuItems={studentNavItems}
+        role="student" // Optional: used for role-based styling in Sidebar
+      />
+
+      {/* 2. Main Content Wrapper */}
+      {/* lg:ml-64 ensures content sits to the right of the fixed sidebar on desktop */}
+      <div className="flex flex-col flex-1 w-full lg:ml-64 transition-all duration-300 relative">
         
-        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
+        {/* Topbar */}
+        <Topbar toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+
+        {/* Page Content */}
+        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden bg-gray-bg">
           <Outlet />
         </main>
       </div>
