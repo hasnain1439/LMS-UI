@@ -1,25 +1,31 @@
 import React from "react";
 import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
 
-// Accept 'data' as a prop
-const LiveSchedule = ({ data }) => {
+const TeacherLiveSchedule = ({ data }) => {
+  // If no classes today, show empty state
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-400 italic">
-        No classes scheduled for today.
+      <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-100">
+        <div className="flex justify-center mb-3">
+          <div className="bg-blue-50 p-3 rounded-full">
+            <FaCalendarAlt className="text-blue-400 text-xl" />
+          </div>
+        </div>
+        <h3 className="text-gray-800 font-semibold">No Classes Today</h3>
+        <p className="text-gray-500 text-sm mt-1">Enjoy your free time!</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
           <FaCalendarAlt className="text-blue-600 text-lg" />
-          <h2 className="text-lg font-bold text-gray-800">Live Schedule</h2>
+          <h2 className="text-lg font-bold text-gray-800">Your Schedule</h2>
         </div>
-        <span className="text-sm text-gray-500 font-medium">This Week</span>
+        <span className="text-sm text-gray-500 font-medium">Today</span>
       </div>
 
       {/* Schedule List */}
@@ -41,17 +47,15 @@ const LiveSchedule = ({ data }) => {
               <div className="flex items-center gap-6 w-full md:w-auto">
                 {/* Time Box */}
                 <div className="flex flex-col items-center justify-center min-w-[60px] text-gray-600">
-                  <span
-                    className={`font-semibold ${
-                      isLive ? "text-blue-600" : "text-gray-500"
-                    }`}
-                  >
-                    {item.day}
-                  </span>
-                  <div className="flex items-center gap-1 text-sm">
-                    <FaRegClock className="text-xs" />
-                    <span>{item.time}</span>
+                  <div className="flex items-center gap-1 text-sm font-semibold">
+                    <FaRegClock className={isLive ? "text-blue-600" : "text-gray-400"} />
+                    <span className={isLive ? "text-blue-900" : "text-gray-600"}>
+                      {item.time}
+                    </span>
                   </div>
+                  <span className="text-xs text-gray-400 font-medium uppercase mt-1">
+                    Start
+                  </span>
                 </div>
 
                 {/* Class Info */}
@@ -68,33 +72,33 @@ const LiveSchedule = ({ data }) => {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">{item.instructor}</p>
+                  <p className="text-sm text-gray-500">
+                     Topic: <span className="font-medium text-gray-700">{item.topic || "General Session"}</span>
+                  </p>
                 </div>
               </div>
 
               {/* Right Side: Action Button */}
               <div className="mt-4 md:mt-0 w-full md:w-auto">
                 <button
-                  // Only disable if it's NOT live. If it IS live, let them click (even if link is missing, so we can alert them)
                   disabled={!isLive} 
-                  
                   onClick={() => {
-                    if (!item.meetingLink) {
-                      alert("Error: No meeting link has been provided for this class yet. Please contact your instructor.");
-                    } else {
-                      window.open(item.meetingLink, "_blank");
-                    }
+                     // Check specifically for Jitsi or Google link
+                     if (!item.meetingLink) {
+                        alert("Error: Link missing. Please update schedule.");
+                     } else {
+                        window.open(item.meetingLink, "_blank");
+                     }
                   }}
-                  
                   className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all ${
                     isLive
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg cursor-pointer"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                      : "bg-white border border-blue-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
                   {isLive ? (
                     <>
-                      <FaVideo /> Join Class
+                      <FaVideo /> Start Class
                     </>
                   ) : (
                     "Upcoming"
@@ -109,4 +113,4 @@ const LiveSchedule = ({ data }) => {
   );
 };
 
-export default LiveSchedule;
+export default TeacherLiveSchedule;

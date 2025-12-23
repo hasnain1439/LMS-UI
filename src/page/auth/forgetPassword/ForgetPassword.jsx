@@ -1,62 +1,126 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
+import { FaEnvelope, FaSpinner, FaArrowLeft, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const ForgotPassword = () => {
+  const [status, setStatus] = useState({ type: "", message: "" });
+
+  // ✅ Validation Schema
   const validationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
   });
 
-  const handleForgotPassword = async (values, { resetForm }) => {
+  const handleForgotPassword = async (values, { setSubmitting, resetForm }) => {
+    setStatus({ type: "", message: "" }); // Clear previous messages
+
     try {
       const res = await axios.post("http://localhost:5000/api/auth/forgot-password", {
         email: values.email,
       });
-      alert(res.data.message);
+
+      // ✅ Show Success Message
+      setStatus({ 
+        type: "success", 
+        message: res.data.message || "Reset link sent! Please check your inbox." 
+      });
+      
       resetForm();
     } catch (error) {
-      console.error("Forgot Password Error:", error.response?.data || error.message);
-      alert(error.response?.data?.error || "Something went wrong");
+      console.error("Forgot Password Error:", error);
+      // ❌ Show Error Message
+      setStatus({ 
+        type: "error", 
+        message: error.response?.data?.error || "Failed to send reset link. Please try again." 
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-light px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-card p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-dark mb-6">
-          Forgot Password
-        </h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Forgot Password?</h2>
+          <p className="text-gray-500 mt-2 text-sm">
+            Enter your email and we'll send you instructions to reset your password.
+          </p>
+        </div>
+
+        {/* Status Alerts */}
+        {status.message && (
+          <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
+            status.type === "success" 
+              ? "bg-green-50 border-green-200 text-green-700" 
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}>
+            {status.type === "success" ? <FaCheckCircle /> : <FaExclamationCircle />}
+            <span className="text-sm font-medium">{status.message}</span>
+          </div>
+        )}
 
         <Formik
           initialValues={{ email: "" }}
           validationSchema={validationSchema}
           onSubmit={handleForgotPassword}
         >
-          <Form className="space-y-5">
-            <div className="relative">
-              <Field
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
-              />
-              <ErrorMessage
-                name="email"
-                component="p"
-                className="text-error text-sm mt-1"
-              />
-            </div>
+          {({ isSubmitting }) => (
+            <Form className="space-y-6">
+              
+              {/* Email Input */}
+              <div className="relative group">
+                <FaEnvelope className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
+                <Field
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email address"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                />
+                <ErrorMessage 
+                  name="email" 
+                  component="p" 
+                  className="text-red-500 text-xs mt-1 ml-1" 
+                />
+              </div>
 
-            <button
-              type="submit"
-              className="w-full py-2.5 text-white rounded-lg bg-primary hover:bg-primary-dark shadow-soft transition duration-300"
-            >
-              Send Reset Link
-            </button>
-          </Form>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2
+                  ${isSubmitting 
+                    ? "bg-blue-400 cursor-not-allowed" 
+                    : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30"
+                  }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <FaSpinner className="animate-spin" /> Sending...
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </button>
+
+              {/* Back to Login */}
+              <div className="text-center mt-4">
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <FaArrowLeft className="text-xs" /> Back to Login
+                </Link>
+              </div>
+
+            </Form>
+          )}
         </Formik>
       </div>
     </div>

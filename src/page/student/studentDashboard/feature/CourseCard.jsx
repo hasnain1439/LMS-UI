@@ -35,7 +35,7 @@ const CourseCard = ({ course, type = "catalog", onAction }) => {
 
   return (
     <div 
-      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col h-full group cursor-pointer"
+      className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col h-full group cursor-pointer"
       onClick={() => onAction && onAction(course.id)} // Make whole card clickable
     >
       

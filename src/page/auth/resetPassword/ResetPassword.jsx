@@ -1,18 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { FaLock, FaSpinner, FaCheckCircle, FaExclamationCircle, FaArrowLeft } from "react-icons/fa";
 
 const ResetPassword = () => {
   const { token } = useParams();
+  const [status, setStatus] = useState({ type: "", message: "" });
 
   const validationSchema = Yup.object({
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
       .matches(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-        "Password must contain uppercase, lowercase, number & special character"
+        "Must contain Uppercase, Lowercase, Number & Special Char"
       )
       .required("Password is required"),
 
@@ -21,72 +23,134 @@ const ResetPassword = () => {
       .required("Confirm password is required"),
   });
 
-  const handleResetPassword = async (values, { resetForm }) => {
+  const handleResetPassword = async (values, { setSubmitting, resetForm }) => {
+    setStatus({ type: "", message: "" });
+
     try {
       const res = await axios.post(
         `http://localhost:5000/api/auth/reset-password/${token}`,
         {
           password: values.password,
-          confirmPassword: values.confirmPassword, // ✅ REQUIRED FOR BACKEND
+          confirmPassword: values.confirmPassword,
         }
       );
 
-      alert(res.data.message);
+      setStatus({ 
+        type: "success", 
+        message: res.data.message || "Password reset successful! You can now login." 
+      });
       resetForm();
     } catch (error) {
-      console.error("Reset Password Error:", error.response?.data || error.message);
-      alert(error.response?.data?.error || "Something went wrong");
+      console.error("Reset Password Error:", error);
+      setStatus({ 
+        type: "error", 
+        message: error.response?.data?.error || "Link invalid or expired. Please try again." 
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-light px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-card p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-dark mb-6">
-          Reset Password
-        </h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Set New Password</h2>
+          <p className="text-gray-500 mt-2 text-sm">
+            Please create a strong password for your account.
+          </p>
+        </div>
 
-        <Formik
-          initialValues={{ password: "", confirmPassword: "" }}
-          validationSchema={validationSchema}
-          onSubmit={handleResetPassword}
-        >
-          <Form className="space-y-5">
-            
-            {/* Password */}
-            <div>
-              <Field
-                type="password"
-                name="password"
-                placeholder="Enter new password"
-                className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
-              />
-              <ErrorMessage name="password" component="p" className="text-error text-sm mt-1" />
-            </div>
+        {/* Status Alerts */}
+        {status.message && (
+          <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
+            status.type === "success" 
+              ? "bg-green-50 border-green-200 text-green-700" 
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}>
+            {status.type === "success" ? <FaCheckCircle /> : <FaExclamationCircle />}
+            <span className="text-sm font-medium">{status.message}</span>
+          </div>
+        )}
 
-            {/* Confirm Password */}
-            <div>
-              <Field
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm new password"
-                className="w-full px-4 py-2.5 border border-gray rounded-lg focus:ring-2 focus:ring-primary-light outline-none transition"
-              />
-              <ErrorMessage
-                name="confirmPassword"
-                component="p"
-                className="text-error text-sm mt-1"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 text-white rounded-lg bg-primary hover:bg-primary-dark shadow-soft transition duration-300"
+        {/* If success, show Login button, else show Form */}
+        {status.type === "success" ? (
+          <div className="text-center">
+            <Link 
+              to="/login"
+              className="inline-block w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all"
             >
-              Reset Password
-            </button>
-          </Form>
-        </Formik>
+              Go to Login
+            </Link>
+          </div>
+        ) : (
+          <Formik
+            initialValues={{ password: "", confirmPassword: "" }}
+            validationSchema={validationSchema}
+            onSubmit={handleResetPassword}
+          >
+            {({ isSubmitting }) => (
+              <Form className="space-y-5">
+                
+                {/* Password Field */}
+                <div className="relative group">
+                  <FaLock className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
+                  <Field
+                    type="password"
+                    name="password"
+                    placeholder="New Password"
+                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                  />
+                  <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1 ml-1" />
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className="relative group">
+                  <FaLock className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
+                  <Field
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirm New Password"
+                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                  />
+                  <ErrorMessage name="confirmPassword" component="p" className="text-red-500 text-xs mt-1 ml-1" />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2
+                    ${isSubmitting 
+                      ? "bg-blue-400 cursor-not-allowed" 
+                      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-500/30"
+                    }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <FaSpinner className="animate-spin" /> Resetting...
+                    </>
+                  ) : (
+                    "Reset Password"
+                  )}
+                </button>
+
+                {/* Back Link */}
+                <div className="text-center mt-4">
+                  <Link 
+                    to="/login" 
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <FaArrowLeft className="text-xs" /> Back to Login
+                  </Link>
+                </div>
+
+              </Form>
+            )}
+          </Formik>
+        )}
       </div>
     </div>
   );

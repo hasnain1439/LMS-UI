@@ -12,6 +12,7 @@ import StatCard from "../../../../component/StatCard";
 import LineCharts from "./LineChart";
 import EnrollmentCharts from "./EnrollmentStatusCharts";
 import RecentActiveStudent from "./RecentActiveStudent";
+import TeacherLiveSchedule from "./TeacherLiveSchedule";
 
 // ✅ Define Backend URL
 const BACKEND_URL = "http://localhost:5000";
@@ -149,7 +150,7 @@ export default function DashboardHome() {
           />
         ))}
       </div>
-
+      <TeacherLiveSchedule data={dashboardData.schedule}/>
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Enrollment Trends */}

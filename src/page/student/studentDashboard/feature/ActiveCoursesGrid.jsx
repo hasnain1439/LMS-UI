@@ -26,12 +26,11 @@ const ActiveCoursesGrid = () => {
       }
 
       // 2. API Call
-      // Ensure this URL matches your server's route exactly
       const response = await axios.get(
         "http://localhost:5000/api/courses/student/my-courses", 
         {
           headers: { 
-            Authorization: `Bearer ${token}` // Send token in header
+            Authorization: `Bearer ${token}` 
           },
         }
       );
@@ -46,17 +45,16 @@ const ActiveCoursesGrid = () => {
     } catch (err) {
       console.error("Fetch Error:", err);
       
-      // Handle Specific Errors
       if (err.response) {
         if (err.response.status === 401) {
-            setError("auth"); // Token invalid/expired
+            setError("auth");
         } else if (err.response.status === 404) {
-            setError("404"); // Route not found
+            setError("404");
         } else {
-            setError("server"); // Other server error
+            setError("server");
         }
       } else {
-        setError("network"); // Server down/No internet
+        setError("network");
       }
     } finally {
       setLoading(false);
@@ -149,7 +147,8 @@ const ActiveCoursesGrid = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
+        {/* 👇 UPDATED: Use .slice(0, 3) to show only the first 3 courses */}
+        {courses.slice(0, 3).map((course) => (
           <CourseCard
             key={course.id}
             course={course}
