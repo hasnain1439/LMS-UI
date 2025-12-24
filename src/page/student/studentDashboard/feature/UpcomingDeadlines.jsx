@@ -91,7 +91,7 @@ const UpcomingDeadlines = ({ data }) => {
                 ) : (
                   // ✅ STATE 2: TAKE QUIZ (Active)
                   <button
-                    onClick={() => navigate(`/student/quiz/${item.id}`)} // 👈 Logic to go to Quiz Page
+                    onClick={() => navigate(`/student/take-quiz/${item.id}`)} // 👈 Logic to go to Quiz Page
                     className={`w-full md:w-auto px-6 py-2 rounded-lg text-sm font-semibold transition-colors ${
                       isUrgent
                         ? "bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-200"

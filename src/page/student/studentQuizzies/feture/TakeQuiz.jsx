@@ -109,7 +109,7 @@ export default function TakeQuiz() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         {quiz.questions.map((q, i) => (
-          <div key={q.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+          <div key={q.id} className="bg-white p-6 rounded-3xl shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-6 flex gap-3">
               <span className="flex-shrink-0 bg-gray-100 text-gray-600 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">{i + 1}</span>
               {q.questionText}

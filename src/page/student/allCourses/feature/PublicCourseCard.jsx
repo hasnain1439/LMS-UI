@@ -27,7 +27,7 @@ export default function PublicCourseCard({
   const remainingCount = course.categories?.length > 1 ? course.categories.length - 1 : 0;
 
   return (
-    <div className="group flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 h-full">
+    <div className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 h-full">
       {/* Top Visual Banner */}
       <div className="h-32 bg-gradient-to-br from-blue-500 to-blue-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]"></div>

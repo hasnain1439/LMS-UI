@@ -49,8 +49,8 @@ const VerifyEmail = () => {
   }, [status, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
+    <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
         
         {/* 1. LOADING STATE */}
         {status === "loading" && (
