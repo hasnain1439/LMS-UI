@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, XCircle, Save, LayoutList, BookOpen, Clock, Calendar, CheckCircle2, AlertCircle, Hash } from "lucide-react";
+import { 
+  Plus, Trash2, Save, LayoutList, BookOpen, 
+  Clock, Calendar, CheckCircle2, AlertCircle, Hash, ArrowLeft 
+} from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// 👇 2. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
 
 // Helper function to create a fresh empty question
 const createEmptyQuestion = () => ({
@@ -41,7 +48,7 @@ const QuizSchema = Yup.object().shape({
 
 export default function CreateQuiz() {
   const [courses, setCourses] = useState([]);
-  const [status, setStatus] = useState("");
+  const [loadingCourses, setLoadingCourses] = useState(true);
   const navigate = useNavigate();
 
   // 1. Fetch Courses (With Token)
@@ -57,7 +64,7 @@ export default function CreateQuiz() {
         const res = await axios.get(
           "http://localhost:5000/api/courses/getAllCourses",
           { 
-            headers: { Authorization: `Bearer ${token}` }, // ✅ Added Token
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true 
           }
         );
@@ -67,7 +74,9 @@ export default function CreateQuiz() {
         if (err.response?.status === 401) {
           navigate("/login");
         }
-        setStatus("Failed to load courses.");
+        toast.error("Failed to load courses list.");
+      } finally {
+        setLoadingCourses(false);
       }
     };
     fetchCourses();
@@ -86,11 +95,10 @@ export default function CreateQuiz() {
     validationSchema: QuizSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
       setSubmitting(true);
-      setStatus("");
       try {
-        const token = localStorage.getItem("token"); // ✅ Get Token
+        const token = localStorage.getItem("token");
         if (!token) {
-            alert("You are logged out. Please login again.");
+            toast.error("You are logged out. Please login again.");
             navigate("/login");
             return;
         }
@@ -106,20 +114,21 @@ export default function CreateQuiz() {
           "http://localhost:5000/api/quizzes/create-quiz",
           payload,
           { 
-            headers: { Authorization: `Bearer ${token}` }, // ✅ Added Token Header
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
         
-        alert("Quiz created successfully!");
+        toast.success("Quiz created successfully!");
         resetForm();
-        navigate(-1); // Go back to quiz list
+        navigate(-1); // Go back
       } catch (err) {
         console.error(err);
         if (err.response?.status === 401) {
           navigate("/login");
         } else {
-          setStatus(err.response?.data?.error || "Failed to create quiz");
+          const msg = err.response?.data?.error || "Failed to create quiz";
+          toast.error(msg);
         }
       } finally {
         setSubmitting(false);
@@ -154,14 +163,26 @@ export default function CreateQuiz() {
     formik.setFieldValue("questions", newQuestions);
   };
 
+  // ✅ Show loading spinner if courses aren't loaded yet
+  if (loadingCourses) return <LoadingSpinner />;
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
       <form onSubmit={formik.handleSubmit} className="max-w-5xl mx-auto space-y-8">
         
         {/* --- Header --- */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create New Quiz</h1>
-          <p className="text-gray-500 mt-1">Configure quiz settings and add questions below.</p>
+        <div className="flex items-center gap-4">
+            <button 
+                type="button"
+                onClick={() => navigate(-1)} 
+                className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition shadow-sm text-gray-600"
+            >
+                <ArrowLeft size={20} />
+            </button>
+            <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create New Quiz</h1>
+                <p className="text-gray-500 mt-1">Configure quiz settings and add questions below.</p>
+            </div>
         </div>
 
         {/* --- Configuration Card --- */}
@@ -180,7 +201,7 @@ export default function CreateQuiz() {
                 name="title"
                 {...formik.getFieldProps("title")}
                 placeholder="e.g. Midterm Exam - Web Development"
-                className={`w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none ${
+                className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none ${
                   formik.touched.title && formik.errors.title ? "border-red-300 ring-4 ring-red-50" : ""
                 }`}
               />
@@ -199,7 +220,7 @@ export default function CreateQuiz() {
                   <select
                     name="courseId"
                     {...formik.getFieldProps("courseId")}
-                    className={`w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer ${
+                    className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer ${
                       formik.touched.courseId && formik.errors.courseId ? "border-red-300" : ""
                     }`}
                   >
@@ -227,7 +248,7 @@ export default function CreateQuiz() {
                   type="datetime-local"
                   name="deadline"
                   {...formik.getFieldProps("deadline")}
-                  className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                 />
                 {formik.touched.deadline && formik.errors.deadline && (
                   <p className="text-red-500 text-xs mt-1.5">{formik.errors.deadline}</p>
@@ -244,7 +265,7 @@ export default function CreateQuiz() {
                   name="timeLimitMinutes"
                   {...formik.getFieldProps("timeLimitMinutes")}
                   placeholder="e.g. 60"
-                  className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                 />
                 {formik.touched.timeLimitMinutes && formik.errors.timeLimitMinutes && (
                   <p className="text-red-500 text-xs mt-1.5">{formik.errors.timeLimitMinutes}</p>
@@ -262,7 +283,7 @@ export default function CreateQuiz() {
                   name="marksPerQuestion"
                   {...formik.getFieldProps("marksPerQuestion")}
                   placeholder="e.g. 1.0"
-                  className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                  className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                 />
                 {formik.touched.marksPerQuestion && formik.errors.marksPerQuestion && (
                   <p className="text-red-500 text-xs mt-1.5">{formik.errors.marksPerQuestion}</p>
@@ -318,7 +339,7 @@ export default function CreateQuiz() {
                     key={idx} 
                     className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
                       q.correctOptionIndex === idx 
-                        ? 'border-emerald-300 bg-emerald-50/50 shadow-sm' 
+                        ? 'border-emerald-400 bg-emerald-50 shadow-sm ring-1 ring-emerald-200' 
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                   >
@@ -345,8 +366,8 @@ export default function CreateQuiz() {
                   </div>
                 ))}
               </div>
-              <div className="mt-2 text-xs text-gray-400 text-right italic">
-                * Select the radio button to mark correct answer
+              <div className="mt-3 text-xs text-gray-400 text-right italic flex justify-end items-center gap-1">
+                <CheckCircle2 size={12} className="text-emerald-500"/> Select the radio button to mark correct answer
               </div>
             </div>
           ))}
@@ -366,7 +387,7 @@ export default function CreateQuiz() {
 
         {/* --- Submit Actions (Sticky Footer) --- */}
         <div className="sticky bottom-6 z-10 flex justify-end">
-          <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl flex gap-4">
+          <div className="bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-200 flex gap-4">
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -391,13 +412,6 @@ export default function CreateQuiz() {
             </button>
           </div>
         </div>
-
-        {/* Error Message */}
-        {status && (
-          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-100 border border-red-200 text-red-700 px-6 py-3 rounded-full shadow-lg font-medium animate-in fade-in slide-in-from-bottom-4 flex items-center gap-2">
-            <XCircle size={18} /> {status}
-          </div>
-        )}
 
       </form>
     </div>

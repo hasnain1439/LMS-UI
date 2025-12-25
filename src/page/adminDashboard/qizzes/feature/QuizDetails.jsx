@@ -2,17 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  ArrowLeft,
-  Clock,
-  Award,
-  Calendar,
-  BookOpen,
-  CheckCircle2,
-  HelpCircle,
-  LayoutList,
-  Loader2,
-  XCircle
+  ArrowLeft, Clock, Award, Calendar, BookOpen, 
+  CheckCircle2, LayoutList, XCircle
 } from "lucide-react";
+
+// 👇 Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
 
 export default function QuizDetails() {
   const { quizId } = useParams();
@@ -57,14 +53,8 @@ export default function QuizDetails() {
     }
   }, [quizId, navigate]);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-        <span className="text-gray-500 font-medium">Loading quiz details...</span>
-      </div>
-    </div>
-  );
+  // ✅ Standard Loading
+  if (loading) return <LoadingSpinner />;
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -235,15 +225,8 @@ export default function QuizDetails() {
               </div>
             ))
           ) : (
-            <div className="bg-white rounded-3xl border-2 border-dashed border-gray-200 p-12 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
-                <HelpCircle size={32} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
-                No questions found
-              </h3>
-              <p className="text-gray-500">This quiz doesn't have any questions yet.</p>
-            </div>
+            // ✅ Standard Empty State
+            <EmptyState message="This quiz doesn't have any questions yet." />
           )}
         </div>
       </div>

@@ -2,7 +2,8 @@ import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaPlus, FaTrash, FaClock, FaCalendarAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import axios from "axios"; 
+import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 
 export default function AddCourses({ onClose, setNewCourse }) {
   const [loading, setLoading] = useState(false);
@@ -36,12 +37,11 @@ export default function AddCourses({ onClose, setNewCourse }) {
   }, []);
 
   const handleSubmit = async (values, { resetForm }) => {
+    setLoading(true);
     try {
-      setLoading(true);
-
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You are not logged in.");
+        toast.error("You are not logged in."); // 🔔 Error Toast
         return;
       }
 
@@ -58,7 +58,6 @@ export default function AddCourses({ onClose, setNewCourse }) {
         })),
       };
 
-      // ✅ FIXED: Updated URL to match your Backend Route (/create-course)
       const res = await axios.post("http://localhost:5000/api/courses/create-course", apiData, {
         headers: { 
             Authorization: `Bearer ${token}`,
@@ -72,13 +71,17 @@ export default function AddCourses({ onClose, setNewCourse }) {
         setNewCourse(res.data.course || res.data); 
       }
 
+      // 🔔 Success Toast
+      toast.success("Course created successfully!");
+
       resetForm();
       if (onClose) onClose(false);
       
     } catch (error) {
       console.error("Error creating course:", error);
       const errorMsg = error.response?.data?.message || error.response?.data?.error || "Failed to create course.";
-      alert(errorMsg);
+      // 🔔 Error Toast
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -128,7 +131,7 @@ export default function AddCourses({ onClose, setNewCourse }) {
                     <Field
                         name="title"
                         type="text"
-                        className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                        className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                         placeholder="e.g. Advanced React Patterns"
                     />
                     <ErrorMessage name="title" component="div" className="text-red-500 text-xs mt-1.5 pl-1 font-medium" />
@@ -141,7 +144,7 @@ export default function AddCourses({ onClose, setNewCourse }) {
                         as="textarea"
                         name="description"
                         rows="4"
-                        className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+                        className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
                         placeholder="What will students learn in this course?"
                     />
                     <ErrorMessage name="description" component="div" className="text-red-500 text-xs mt-1.5 pl-1 font-medium" />
@@ -190,7 +193,7 @@ export default function AddCourses({ onClose, setNewCourse }) {
                                 <Field
                                     name="duration"
                                     type="number"
-                                    className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 pl-10 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                                    className="w-full bg-gray-50 border rounded-xl px-4 py-3 pl-10 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                                     placeholder="8"
                                 />
                                 <FaCalendarAlt className="absolute left-3.5 top-3.5 text-gray-400" size={16} />
@@ -206,7 +209,7 @@ export default function AddCourses({ onClose, setNewCourse }) {
                             as="textarea"
                             name="courseCurriculum"
                             rows="4"
-                            className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
+                            className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none"
                             placeholder="Briefly list key topics (e.g., Intro, Basics, Advanced Concepts)"
                         />
                         <ErrorMessage name="courseCurriculum" component="div" className="text-red-500 text-xs mt-1.5 pl-1 font-medium" />

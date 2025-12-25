@@ -2,20 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
-  FaEnvelope,
-  FaIdBadge,
-  FaUserCheck,
-  FaCalendarAlt,
-  FaPen,
-  FaKey,
-  FaSignOutAlt,
-  FaBriefcase,
-  FaGraduationCap
+  FaEnvelope, FaIdBadge, FaUserCheck, FaCalendarAlt,
+  FaPen, FaKey, FaSignOutAlt, FaBriefcase, FaGraduationCap
 } from "react-icons/fa";
-import { logout } from "../../../../component/LogoutButton"; // Adjust path if needed
+import { logout } from "../../../../component/LogoutButton"; 
 
-// ✅ Define Backend URL (Easy to change later)
-const BACKEND_URL = "http://localhost:5000";
+// 👇 1. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
+
+// ✅ 2. Use Environment Variable (Fallback to localhost if not set)
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -50,8 +47,7 @@ const ProfilePage = () => {
 
         // C. Error Handling: Force Logout on 401/403
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+          await logout(); // Use your imported utility
           navigate("/login");
         } else {
           setError("Failed to load profile data.");
@@ -64,17 +60,12 @@ const ProfilePage = () => {
     fetchProfile();
   }, [navigate]);
 
-  // --- ✅ HELPER: Strict Image Safety Check (Fixes 404 Error) ---
+  // --- ✅ HELPER: Strict Image Safety Check ---
   const getProfileImage = (url) => {
-    // 1. Block empty values, "undefined", or "null" strings
     if (!url || url === "undefined" || url === "null") {
       return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     }
-
-    // 2. If it's a full URL (Google/Cloudinary), use it
     if (url.startsWith("http") || url.startsWith("blob")) return url;
-
-    // 3. If it's a local file, add backend URL + timestamp (Cache Busting)
     return `${BACKEND_URL}${url}?t=${new Date().getTime()}`;
   };
 
@@ -102,29 +93,16 @@ const ProfilePage = () => {
   };
 
   // --- Render Loading State ---
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-500 bg-gray-50">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="font-medium animate-pulse">Loading your profile...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   // --- Render Error State ---
   if (error || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500 bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md text-center">
-          <p className="text-xl font-bold mb-2">Error Loading Profile</p>
-          <p>{error || "No user data found."}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+        <EmptyState 
+            message={error || "No user profile found."} 
+            // You can add a retry button inside EmptyState or here manually if preferred
+        />
       </div>
     );
   }
@@ -133,7 +111,7 @@ const ProfilePage = () => {
 
   // --- Render Main Profile ---
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <div className="space-y-6 mx-auto">
         
         {/* --- BLUE HEADER CARD --- */}
@@ -145,7 +123,6 @@ const ProfilePage = () => {
             <div className="relative flex flex-col sm:flex-row items-center sm:items-end -mt-12 mb-6">
               {/* Profile Image */}
               <img
-                // ✅ Apply Safe Helper Here
                 src={getProfileImage(user.profilePicture || user.profile_picture)}
                 onError={(e) => {
                   e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -313,12 +290,16 @@ const ProfilePage = () => {
                     Key Skills
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {typeof user.skills === "string" 
+                    {/* ✅ 3. Improved Skills Handling (String or Array) */}
+                    {Array.isArray(user.skills)
+                      ? user.skills.map((skill, index) => (
+                          <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm border border-gray-200 hover:bg-gray-200 transition select-none">
+                            {skill}
+                          </span>
+                        ))
+                      : typeof user.skills === "string"
                       ? user.skills.split(",").map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm border border-gray-200 hover:bg-gray-200 transition select-none"
-                          >
+                          <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm border border-gray-200 hover:bg-gray-200 transition select-none">
                             {skill.trim()}
                           </span>
                         ))

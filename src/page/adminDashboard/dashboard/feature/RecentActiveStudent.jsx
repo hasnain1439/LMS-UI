@@ -1,12 +1,17 @@
 import React from "react";
 import { LuUsers, LuClock } from "react-icons/lu";
+import EmptyState from "../../../../component/EmptyState";
+
 
 function RecentActiveStudent({ data }) {
+  // ✅ UPDATED: Use standard EmptyState component
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 h-full flex flex-col justify-center items-center text-center">
-        <h3 className="text-lg font-bold text-gray-800 mb-2">Recent Activity</h3>
-        <p className="text-gray-400 text-sm">No recent activity found.</p>
+      <div className="bg-white p-6 rounded-3xl shadow-md h-full flex flex-col">
+        <h3 className="text-lg font-bold text-gray-800 mb-6">Recent Activity</h3>
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState message="No recent activity found." />
+        </div>
       </div>
     );
   }
@@ -22,7 +27,7 @@ function RecentActiveStudent({ data }) {
         {data.map((activity, index) => (
           <div 
             key={index} 
-            className="group flex items-start gap-4 p-3  rounded-2xl hover:bg-gray-50 transition-colors duration-200"
+            className="group flex items-start gap-4 p-3 rounded-2xl hover:bg-gray-50 transition-colors duration-200"
           >
             {/* Icon Container */}
             <div className="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">

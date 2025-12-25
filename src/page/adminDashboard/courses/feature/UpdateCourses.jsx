@@ -2,6 +2,7 @@ import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaPlus, FaTrash, FaClock, FaCalendarAlt } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 
 // Map day names to numbers (backend expects numbers)
 const dayMap = [
@@ -49,8 +50,8 @@ export default function UpdateCourses({ course, onClose, onSave }) {
     courseCurriculum: course.courseCurriculum || "",
     schedules: course.schedules.map((s) => ({
       dayOfWeek: Number(s.dayOfWeek) || "", 
-      startTime: s.startTime.slice(0, 5), 
-      endTime: s.endTime.slice(0, 5),
+      startTime: s.startTime ? s.startTime.slice(0, 5) : "", 
+      endTime: s.endTime ? s.endTime.slice(0, 5) : "",
     })),
   };
 
@@ -70,11 +71,20 @@ export default function UpdateCourses({ course, onClose, onSave }) {
           endTime: s.endTime,
         })),
       };
+      
       await onSave(updatedData);
+      
+      // 🔔 Success Notification handled by parent or here?
+      // Since onSave is async and might fail, we usually let the parent handle the toast.
+      // BUT if you want it here:
+      // toast.success("Course updated successfully!"); 
+      
       onClose();
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.error || "Failed to update course");
+      const msg = error.response?.data?.error || "Failed to update course";
+      // 🔔 Error Notification
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

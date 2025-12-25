@@ -96,7 +96,7 @@ export default function TakeQuiz() {
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-800">
       
       {/* Sticky Header with Timer */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center">
         <div>
           <h2 className="font-bold text-gray-900 text-lg line-clamp-1">{quiz.title}</h2>
           <p className="text-xs text-gray-500">{quiz.totalQuestions} Questions • {quiz.totalMarks} Marks</p>
@@ -107,7 +107,7 @@ export default function TakeQuiz() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="w-full space-y-8">
         {quiz.questions.map((q, i) => (
           <div key={q.id} className="bg-white p-6 rounded-3xl shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-6 flex gap-3">

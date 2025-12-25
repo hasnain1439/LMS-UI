@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 import { 
   Save, 
   ArrowLeft, 
   Plus, 
   Trash2, 
-  AlertCircle, 
   HelpCircle, 
   CheckCircle2 
 } from "lucide-react";
@@ -16,7 +16,6 @@ export default function AddQuestion() {
   const navigate = useNavigate();
 
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   
   // Initial State
   const [questionText, setQuestionText] = useState("");
@@ -54,25 +53,23 @@ export default function AddQuestion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError("");
 
     // Validation
     if (!questionText.trim()) {
-      setError("Question text cannot be empty.");
+      toast.error("Question text cannot be empty."); // 🔔 Error Toast
       setSaving(false);
       return;
     }
     if (options.some(opt => !opt.trim())) {
-      setError("All answer options must be filled.");
+      toast.error("All answer options must be filled."); // 🔔 Error Toast
       setSaving(false);
       return;
     }
 
     try {
-      // ✅ FIX: Get Token
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You are logged out. Please login again.");
+        toast.error("You are logged out. Please login again.");
         navigate("/login");
         return;
       }
@@ -83,27 +80,30 @@ export default function AddQuestion() {
         correctOptionIndex
       };
 
-      // ✅ FIX: Add Authorization Header
       await axios.post(
         `http://localhost:5000/api/quizzes/${quizId}/add-question`,
         payload,
         { 
-            headers: { Authorization: `Bearer ${token}` }, // <--- THIS WAS MISSING
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true 
         }
       );
 
+      // 🔔 Success Toast
+      toast.success("Question added successfully!");
+      
       // On success, go back
       navigate(-1); 
     } catch (err) {
       console.error("Add question error:", err);
+      const msg = err.response?.data?.error || "Failed to add question.";
+      
       if (err.response?.status === 401) {
         navigate("/login");
-      } else if (err.response?.status === 400) {
-        setError(err.response.data.error);
-      } else {
-        setError("Failed to add question. Please try again.");
       }
+      
+      // 🔔 Error Toast
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -129,14 +129,6 @@ export default function AddQuestion() {
           </div>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mx-8 mt-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle size={20} />
-            <span className="font-medium text-sm">{error}</span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="p-8 space-y-8">
           
           {/* Question Text Section */}
@@ -147,7 +139,7 @@ export default function AddQuestion() {
             <textarea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
-              className="w-full bg-gray-50 border border-transparent rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none min-h-[120px]"
+              className="w-full bg-gray-50 border rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none min-h-[120px]"
               placeholder="e.g. What is the output of console.log(typeof null)?"
               autoFocus
             />

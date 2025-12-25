@@ -3,11 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 import {
   Save, ArrowLeft, Trash2, Edit2, Clock, Calendar, 
   Settings, AlertCircle, CheckCircle2, LayoutList, 
-  XCircle, Plus, BookOpen, Hash
+  Plus, BookOpen, Hash
 } from "lucide-react";
+
+// 👇 2. Import Standard Component
+import LoadingSpinner from "../../../../component/LoadingSpinner";
 
 // Helper: Format UTC date to Local ISO string
 const formatDateForInput = (dateString) => {
@@ -33,7 +37,6 @@ export default function EditQuiz() {
 
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState([]);
-  const [message, setMessage] = useState(null); 
 
   const [initialValues, setInitialValues] = useState({
     title: "",
@@ -48,6 +51,11 @@ export default function EditQuiz() {
     const fetchQuiz = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
         const res = await axios.get(
           `http://localhost:5000/api/quizzes/${quizId}`,
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
@@ -65,13 +73,14 @@ export default function EditQuiz() {
         });
       } catch (err) {
         console.error("Failed to load quiz", err);
-        setMessage({ type: "error", text: "Failed to load quiz details." });
+        toast.error("Failed to load quiz details.");
+        if (err.response?.status === 401) navigate("/login");
       } finally {
         setLoading(false);
       }
     };
     fetchQuiz();
-  }, [quizId]);
+  }, [quizId, navigate]);
 
   // 2. Formik Setup
   const formik = useFormik({
@@ -79,7 +88,6 @@ export default function EditQuiz() {
     enableReinitialize: true,
     validationSchema: QuizSchema,
     onSubmit: async (values, { setSubmitting }) => {
-      setMessage(null);
       try {
         const token = localStorage.getItem("token");
         const totalQ = questions.length;
@@ -99,11 +107,11 @@ export default function EditQuiz() {
           { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
         );
         
-        setMessage({ type: "success", text: "Quiz updated successfully!" });
+        toast.success("Quiz updated successfully!");
         window.scrollTo({ top: 0, behavior: "smooth" });
 
       } catch (err) {
-        setMessage({ type: "error", text: err.response?.data?.error || "Failed to update quiz." });
+        toast.error(err.response?.data?.error || "Failed to update quiz.");
       } finally {
         setSubmitting(false);
       }
@@ -120,9 +128,9 @@ export default function EditQuiz() {
         { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
       setQuestions((prev) => prev.filter((q) => q.id !== questionId));
-      setMessage({ type: "success", text: "Question deleted." });
+      toast.success("Question deleted.");
     } catch (err) {
-      setMessage({ type: "error", text: "Failed to delete question." });
+      toast.error("Failed to delete question.");
     }
   };
 
@@ -136,11 +144,8 @@ export default function EditQuiz() {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    </div>
-  );
+  // ✅ Standard Loading
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
@@ -168,15 +173,6 @@ export default function EditQuiz() {
           </div>
         </div>
 
-        {/* --- Notifications --- */}
-        {message && (
-          <div className={`p-4 rounded-xl border flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-            {message.type === 'success' ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-            <span className="font-medium">{message.text}</span>
-            <button onClick={() => setMessage(null)} className="ml-auto opacity-60 hover:opacity-100"><XCircle size={18} /></button>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* --- Settings Panel (Sticky) --- */}
@@ -195,7 +191,7 @@ export default function EditQuiz() {
                   <input
                     type="text"
                     {...formik.getFieldProps("title")}
-                    className={`w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none ${formik.touched.title && formik.errors.title ? "border-red-300 bg-red-50" : ""}`}
+                    className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none ${formik.touched.title && formik.errors.title ? "border-red-300 bg-red-50" : ""}`}
                   />
                   {formik.touched.title && formik.errors.title && <p className="text-red-500 text-xs mt-1">{formik.errors.title}</p>}
                 </div>
@@ -205,7 +201,7 @@ export default function EditQuiz() {
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
                   <select
                     {...formik.getFieldProps("status")}
-                    className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none appearance-none cursor-pointer"
                   >
                     <option value="draft">Draft (Hidden)</option>
                     <option value="published">Published (Visible)</option>
@@ -222,7 +218,7 @@ export default function EditQuiz() {
                     <input
                       type="number"
                       {...formik.getFieldProps("timeLimit")}
-                      className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                     />
                   </div>
                   <div>
@@ -233,7 +229,7 @@ export default function EditQuiz() {
                       type="number"
                       step="0.5"
                       {...formik.getFieldProps("marksPerQuestion")}
-                      className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                     />
                   </div>
                 </div>
@@ -246,7 +242,7 @@ export default function EditQuiz() {
                   <input
                     type="datetime-local"
                     {...formik.getFieldProps("deadline")}
-                    className="w-full bg-gray-50 border border-transparent rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                    className="w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                   />
                   {formik.touched.deadline && formik.errors.deadline && <p className="text-red-500 text-xs mt-1">{formik.errors.deadline}</p>}
                 </div>

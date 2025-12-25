@@ -4,9 +4,13 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaCamera, FaArrowLeft, FaSave, FaUser } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 
-// ✅ Define Backend URL
-const BACKEND_URL = "http://localhost:5000";
+// 👇 2. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+
+// ✅ Use Environment Variable
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const UpdateProfile = () => {
   const navigate = useNavigate();
@@ -18,21 +22,20 @@ const UpdateProfile = () => {
   // File upload state
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-  const [message, setMessage] = useState("");
 
-  // --- ✅ HELPER: Handle Image URLs (Backend vs Local Preview) ---
+  // --- ✅ HELPER: Handle Image URLs ---
   const getSafeImage = (imgSrc) => {
     // 1. If no image, return placeholder
     if (!imgSrc || imgSrc === "undefined" || imgSrc === "null") {
       return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
     }
 
-    // 2. If it's a "Blob" (New file selected from computer) OR External URL -> Return as is
+    // 2. If it's a "Blob" (New file selected) OR External URL -> Return as is
     if (imgSrc.startsWith("blob:") || imgSrc.startsWith("http")) {
       return imgSrc;
     }
 
-    // 3. If it's a backend path (e.g., "/uploads/photo.jpg") -> Prepend Backend URL
+    // 3. If it's a backend path -> Prepend Backend URL
     return `${BACKEND_URL}${imgSrc}`;
   };
 
@@ -56,6 +59,7 @@ const UpdateProfile = () => {
         }
       } catch (err) {
         console.error("Failed to load profile", err);
+        toast.error("Failed to load profile data.");
         navigate("/login");
       } finally {
         setLoading(false);
@@ -94,9 +98,10 @@ const UpdateProfile = () => {
         }
       );
 
-      setMessage("Profile updated successfully!");
+      // 🔔 Success Toast
+      toast.success("Profile updated successfully!");
       
-      // Update Local Storage
+      // Update Local Storage (to keep UI in sync immediately)
       const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
       localStorage.setItem("user", JSON.stringify({ ...currentUser, ...res.data.user }));
 
@@ -105,19 +110,16 @@ const UpdateProfile = () => {
 
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.error || "Failed to update profile");
+      const msg = error.response?.data?.error || "Failed to update profile";
+      // 🔔 Error Toast
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  // ✅ Standard Loading
+  if (loading || !user) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center py-10 px-4">
@@ -136,12 +138,7 @@ const UpdateProfile = () => {
         </div>
 
         <div className="p-8">
-          {message && (
-            <div className={`mb-6 p-3 rounded-lg text-center font-medium border ${message.includes("success") ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}`}>
-              {message}
-            </div>
-          )}
-
+          
           <Formik
             initialValues={{
               firstName: user.firstName || "",
@@ -157,7 +154,6 @@ const UpdateProfile = () => {
                 {/* 1. Profile Picture Upload */}
                 <div className="flex flex-col items-center mb-8">
                   <div className="relative cursor-pointer group">
-                    {/* ✅ UPDATED IMAGE TAG WITH SAFE HELPER */}
                     <img 
                       src={getSafeImage(previewImage)} 
                       alt="Profile Preview" 

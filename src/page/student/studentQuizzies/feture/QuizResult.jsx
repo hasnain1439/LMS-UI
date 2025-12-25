@@ -37,7 +37,7 @@ export default function QuizResult() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-800">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-8">
+      <div className="w-full space-y-8">
         
         {/* Header */}
         <button onClick={() => navigate("/student/quizzes")} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition">
@@ -45,7 +45,7 @@ export default function QuizResult() {
         </button>
 
         {/* Score Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-center p-10">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-center">
           <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${bgClass}`}>
             <Trophy size={40} className={gradeColor} />
           </div>

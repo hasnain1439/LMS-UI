@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaRegEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// 👇 2. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
+
 import { GetCourses } from "../../../../api/GetCourses"; 
 
 // Helper for status styling
@@ -36,6 +42,7 @@ export default function QuizzesSection() {
         setCourses(data || []);
       } catch (err) {
         console.error("Failed to load courses:", err);
+        toast.error("Failed to load courses list.");
       }
     };
     fetchCoursesData();
@@ -70,6 +77,7 @@ export default function QuizzesSection() {
           navigate("/login", { replace: true });
         } else {
           setError("Failed to load quizzes. Please check backend connection.");
+          toast.error("Failed to load quizzes.");
           setQuizzes([]);
         }
       } finally {
@@ -90,8 +98,10 @@ export default function QuizzesSection() {
         withCredentials: true,
       });
       setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+      toast.success("Quiz deleted successfully");
     } catch (err) {
-      alert("Failed to delete quiz");
+      console.error(err);
+      toast.error("Failed to delete quiz");
     }
   };
 
@@ -162,11 +172,10 @@ export default function QuizzesSection() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
+                // ✅ Standard Loading Spinner
                 <tr>
                   <td colSpan={7} className="text-center py-12">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    </div>
+                    <LoadingSpinner />
                   </td>
                 </tr>
               ) : error ? (
@@ -174,9 +183,10 @@ export default function QuizzesSection() {
                   <td colSpan={7} className="text-center py-12 text-red-500">{error}</td>
                 </tr>
               ) : quizzes.length === 0 ? (
+                // ✅ Standard Empty State
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400 italic">
-                    No quizzes found matching your criteria.
+                  <td colSpan={7} className="py-12">
+                    <EmptyState message="No quizzes found matching your criteria." />
                   </td>
                 </tr>
               ) : (

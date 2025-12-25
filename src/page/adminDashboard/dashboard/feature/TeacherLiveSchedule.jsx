@@ -1,18 +1,14 @@
 import React from "react";
 import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
+import EmptyState from "../../../../component/EmptyState";
+
 
 const TeacherLiveSchedule = ({ data }) => {
-  // If no classes today, show empty state
+  // ✅ UPDATED: Use standard EmptyState component
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-100">
-        <div className="flex justify-center mb-3">
-          <div className="bg-blue-50 p-3 rounded-full">
-            <FaCalendarAlt className="text-blue-400 text-xl" />
-          </div>
-        </div>
-        <h3 className="text-gray-800 font-semibold">No Classes Today</h3>
-        <p className="text-gray-500 text-sm mt-1">Enjoy your free time!</p>
+      <div className="bg-white rounded-xl shadow-md p-6 min-h-[200px] flex items-center justify-center">
+        <EmptyState message="No classes scheduled for today." />
       </div>
     );
   }
@@ -73,7 +69,7 @@ const TeacherLiveSchedule = ({ data }) => {
                     )}
                   </div>
                   <p className="text-sm text-gray-500">
-                     Topic: <span className="font-medium text-gray-700">{item.topic || "General Session"}</span>
+                      Topic: <span className="font-medium text-gray-700">{item.topic || "General Session"}</span>
                   </p>
                 </div>
               </div>
@@ -83,12 +79,12 @@ const TeacherLiveSchedule = ({ data }) => {
                 <button
                   disabled={!isLive} 
                   onClick={() => {
-                     // Check specifically for Jitsi or Google link
-                     if (!item.meetingLink) {
+                      // Check specifically for Jitsi or Google link
+                      if (!item.meetingLink) {
                         alert("Error: Link missing. Please update schedule.");
-                     } else {
+                      } else {
                         window.open(item.meetingLink, "_blank");
-                     }
+                      }
                   }}
                   className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all ${
                     isLive

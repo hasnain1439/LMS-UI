@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { GetCourseById } from "../../../../api/GetCourseById";
 import { FaBookOpen, FaCalendarAlt, FaClock } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// 👇 2. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
 
 export default function CourseDetail() {
   const { courseId } = useParams();
@@ -21,7 +26,7 @@ export default function CourseDetail() {
 
       try {
         const data = await GetCourseById(courseId);
-        // Normalization logic same as before
+        // Normalization logic
         const normalizedCourse = {
           ...data,
           courseCurriculum: Array.isArray(data.courseCurriculum)
@@ -39,6 +44,8 @@ export default function CourseDetail() {
       } catch (err) {
         console.error("Error fetching course:", err);
         setError("Failed to load course");
+        // 🔔 Error Notification
+        toast.error("Failed to load course details.");
       } finally {
         setLoading(false);
       }
@@ -46,19 +53,19 @@ export default function CourseDetail() {
     fetchCourse();
   }, [courseId]);
 
-  if (loading) return (
-      <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-      </div>
-  );
-  if (error) return <div className="text-center text-red-500 py-10 bg-red-50 rounded-xl mx-6 mt-6">{error}</div>;
-  if (!course) return <div className="text-center text-gray-500 py-10 bg-gray-50 rounded-xl mx-6 mt-6">Course not found</div>;
+  // ✅ 3. Standard Loading
+  if (loading) return <LoadingSpinner />;
+
+  // ✅ 4. Standard Empty/Error State
+  if (error || !course) {
+    return <EmptyState message={error || "Course not found"} />;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8 font-sans text-gray-800">
+    <div className="w-full space-y-8 font-sans text-gray-800">
       
       {/* Hero Section */}
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-3xl p-8 shadow-md">
         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
             <div>
                 <h1 className="text-3xl font-extrabold text-gray-900 leading-tight">{course.name}</h1>
@@ -81,7 +88,7 @@ export default function CourseDetail() {
         
         {/* Curriculum Column */}
         <div className="md:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden h-full">
+            <div className="bg-white rounded-3xl shadow-md overflow-hidden h-full">
                 <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
                     <div className="bg-white p-2 rounded-lg shadow-sm text-blue-600">
                         <FaBookOpen />
@@ -111,7 +118,7 @@ export default function CourseDetail() {
 
         {/* Schedule Column */}
         <div className="md:col-span-1">
-             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden h-full">
+             <div className="bg-white rounded-3xl shadow-md overflow-hidden h-full">
                 <div className="px-6 py-6 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
                     <div className="bg-white p-2 rounded-lg shadow-sm text-green-600">
                         <FaCalendarAlt />

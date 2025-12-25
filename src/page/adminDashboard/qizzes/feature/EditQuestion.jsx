@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 import { 
-  Save, ArrowLeft, Plus, Trash2, AlertCircle, 
+  Save, ArrowLeft, Plus, Trash2, 
   HelpCircle, CheckCircle2 
 } from "lucide-react";
+
+// 👇 2. Import Standard Component
+import LoadingSpinner from "../../../../component/LoadingSpinner"; // Adjust path if needed
 
 export default function EditQuestion() {
   const { quizId, questionId } = useParams();
@@ -12,7 +16,6 @@ export default function EditQuestion() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   
   // Form State
   const [questionText, setQuestionText] = useState("");
@@ -26,7 +29,6 @@ export default function EditQuestion() {
         setLoading(true);
         const token = localStorage.getItem("token");
         
-        // Security Check
         if (!token) {
             navigate("/login");
             return;
@@ -46,12 +48,14 @@ export default function EditQuestion() {
             setOptions(foundQuestion.options);
             setCorrectOptionIndex(foundQuestion.correctOptionIndex);
         } else {
-            setError("Question not found in this quiz.");
+            toast.error("Question not found.");
+            navigate(-1);
         }
 
       } catch (err) {
         console.error("Error fetching question:", err);
-        setError("Failed to load question details.");
+        toast.error("Failed to load question details.");
+        navigate(-1);
       } finally {
         setLoading(false);
       }
@@ -89,15 +93,14 @@ export default function EditQuestion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError("");
 
     if (!questionText.trim()) {
-      setError("Question text cannot be empty.");
+      toast.error("Question text cannot be empty.");
       setSaving(false);
       return;
     }
     if (options.some(opt => !opt.trim())) {
-      setError("All options must be filled.");
+      toast.error("All options must be filled.");
       setSaving(false);
       return;
     }
@@ -116,32 +119,26 @@ export default function EditQuestion() {
         { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
 
-      alert("Question updated successfully!");
+      toast.success("Question updated successfully!");
       navigate(-1);
     } catch (err) {
       console.error("Update error:", err);
       if (err.response?.status === 400) {
-        setError(err.response.data.error || "Cannot modify question with existing submissions.");
+        toast.error(err.response.data.error || "Cannot modify question.");
       } else {
-        setError("Failed to update question. Please try again.");
+        toast.error("Failed to update question.");
       }
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-pulse flex flex-col items-center">
-        <div className="h-4 w-48 bg-gray-200 rounded mb-2"></div>
-        <div className="text-gray-400 text-sm">Loading question...</div>
-      </div>
-    </div>
-  );
+  // ✅ Standard Loading
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center py-10 px-4 font-sans">
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <div className="w-full bg-white rounded-3xl shadow-lg overflow-hidden">
         
         {/* Header */}
         <div className="bg-gray-50/50 px-8 py-6 border-b border-gray-100 flex items-center justify-between">
@@ -159,14 +156,6 @@ export default function EditQuestion() {
           </div>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mx-8 mt-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-            <AlertCircle size={20} />
-            <span className="font-medium text-sm">{error}</span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="p-8 space-y-8">
           
           {/* Question Text */}
@@ -177,7 +166,7 @@ export default function EditQuestion() {
             <textarea
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
-              className="w-full bg-gray-50 border border-transparent rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none min-h-[120px]"
+              className="w-full bg-gray-50 border rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none resize-none min-h-[120px]"
               placeholder="Enter the question here..."
             />
           </div>

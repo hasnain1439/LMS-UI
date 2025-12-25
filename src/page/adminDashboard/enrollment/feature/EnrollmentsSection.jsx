@@ -6,8 +6,14 @@ import { CiSearch } from "react-icons/ci";
 import { 
   FaPlus, FaRegEye, FaEdit, FaTrash, FaTimes, 
   FaUserGraduate, FaBookOpen, FaCalendarAlt, 
-  FaChartLine, FaSave, FaEllipsisV 
+  FaChartLine, FaSave 
 } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// ✅ Import Standard Components (Using the path structure from your previous files)
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
+
 import { GetCourses } from "../../../../api/GetCourses"; 
 
 // ✅ URLs
@@ -78,6 +84,8 @@ export default function EnrollmentsSection() {
       setEnrollments(response.data.data || []);
     } catch (error) {
       console.error("Error fetching enrollments:", error);
+      // 🔔 Error Toast
+      toast.error("Failed to load enrollments.");
     } finally {
       setLoading(false);
     }
@@ -93,6 +101,7 @@ export default function EnrollmentsSection() {
           setCoursesList(Array.isArray(data) ? data : (data.data || []));
         } catch (err) {
           console.error("Failed to load courses:", err);
+          toast.error("Failed to load courses list.");
         } finally {
           setLoadingCourses(false);
         }
@@ -104,7 +113,7 @@ export default function EnrollmentsSection() {
   // --- 3. CREATE ENROLLMENT ---
   const handleAddStudent = async (e) => {
     e.preventDefault();
-    if (!selectedCourseId) return alert("Please select a course");
+    if (!selectedCourseId) return toast.error("Please select a course");
 
     try {
       await axios.post(API_URL, { 
@@ -112,14 +121,17 @@ export default function EnrollmentsSection() {
         courseId: selectedCourseId 
       }, getAuthConfig());
       
-      alert("Student Enrolled Successfully!");
+      // 🔔 Success Toast
+      toast.success("Student Enrolled Successfully!");
+      
       setShowModal(false);
       setStudentEmail("");
       setSelectedCourseId("");
       fetchData(); 
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to enroll student.";
-      alert(msg);
+      // 🔔 Error Toast
+      toast.error(msg);
     }
   };
 
@@ -128,10 +140,14 @@ export default function EnrollmentsSection() {
     if (confirm("Are you sure you want to drop this student?")) {
       try {
         await axios.put(`${API_URL}/${id}`, { status: "dropped" }, getAuthConfig());
+        
+        // 🔔 Success Toast
+        toast.success("Student dropped successfully.");
         fetchData();
       } catch (error) {
         const msg = error.response?.data?.message || "Failed to drop student";
-        alert(msg);
+        // 🔔 Error Toast
+        toast.error(msg);
       }
     }
   };
@@ -161,13 +177,16 @@ export default function EnrollmentsSection() {
         progress: Number(editFormData.progress)
       }, getAuthConfig());
 
-      alert("Enrollment Updated Successfully!");
+      // 🔔 Success Toast
+      toast.success("Enrollment Updated Successfully!");
+      
       setEditModal(false);
       fetchData(); // Refresh Table
     } catch (error) {
       console.error(error);
       const msg = error.response?.data?.message || "Failed to update enrollment";
-      alert(msg);
+      // 🔔 Error Toast
+      toast.error(msg);
     }
   };
 
@@ -222,7 +241,7 @@ export default function EnrollmentsSection() {
       </div>
 
       {/* --- TABLE CARD --- */}
-      <div className="bg-white rounded-3xl shadow-md  overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -237,16 +256,18 @@ export default function EnrollmentsSection() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
+                // ✅ 2. Standard Loading Spinner
                 <tr>
                   <td colSpan={6} className="text-center py-12">
-                    <div className="flex justify-center items-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    </div>
+                    <LoadingSpinner />
                   </td>
                 </tr>
               ) : enrollments.length === 0 ? (
+                // ✅ 3. Standard Empty State
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400 italic">No enrollments found matching your criteria.</td>
+                  <td colSpan={6} className="py-12">
+                    <EmptyState message="No enrollments found matching your criteria." />
+                  </td>
                 </tr>
               ) : (
                 enrollments.map((item) => (
@@ -294,21 +315,21 @@ export default function EnrollmentsSection() {
                       <div className="flex justify-end items-center gap-2 ">
                         <button 
                           onClick={() => handleView(item)} 
-                          className="p-2 text-gray hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" 
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" 
                           title="View Details"
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button 
                           onClick={() => handleEdit(item)} 
-                          className="p-2 text-gray hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all" 
                           title="Edit"
                         >
                           <FaEdit size={16} />
                         </button>
                         <button 
                           onClick={() => handleDropStudent(item.id)} 
-                          className="p-2 text-gray hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" 
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" 
                           title="Drop Student"
                         >
                           <FaTrash size={16} />
@@ -418,7 +439,7 @@ export default function EnrollmentsSection() {
             <div className="p-8 space-y-8">
               <div className="flex items-center gap-5">
                 <div className="h-20 w-20 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-3xl font-bold border border-blue-100 shadow-inner">
-                  {selectedEnrollment.studentName?.charAt(0).toUpperCase()}
+                  {selectedEnrollment.studentName?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div>
                   <h4 className="text-2xl font-bold text-gray-900">{selectedEnrollment.studentName}</h4>
@@ -449,10 +470,10 @@ export default function EnrollmentsSection() {
                     <p className="text-xs font-bold text-gray-400 uppercase flex items-center gap-1.5">
                       <FaChartLine className="text-purple-400" /> Progress
                     </p>
-                    <span className="text-sm font-bold text-blue-600">{selectedEnrollment.progress}%</span>
+                    <span className="text-sm font-bold text-blue-600">{selectedEnrollment.progress || 0}%</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full" style={{ width: `${selectedEnrollment.progress}%` }}></div>
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full" style={{ width: `${selectedEnrollment.progress || 0}%` }}></div>
                   </div>
                 </div>
               </div>

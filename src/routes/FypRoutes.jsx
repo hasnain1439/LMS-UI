@@ -34,6 +34,7 @@ import StudentQuizzes from "../page/student/studentQuizzies/index.jsx";
 import MyCourseDetails from "../page/student/studentDashboard/feature/MyCourseDetails.jsx";
 import TakeQuiz from "../page/student/studentQuizzies/feture/TakeQuiz.jsx";
 import QuizResult from "../page/student/studentQuizzies/feture/QuizResult.jsx";
+import { Toaster } from "react-hot-toast";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -156,7 +157,12 @@ function FypRoutes() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default FypRoutes;

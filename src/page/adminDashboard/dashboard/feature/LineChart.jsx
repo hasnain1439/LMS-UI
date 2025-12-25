@@ -2,8 +2,9 @@ import React from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import EmptyState from "../../../../component/EmptyState";
 
-// Custom Tooltip Component for better UI
+// Custom Tooltip Component
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -19,13 +20,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const LineCharts = ({ data }) => {
-  // If no data, show empty state
+  // ✅ 1. Standard Empty State (No Notifications needed here)
   if (!data || data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-        <p className="text-gray-400 font-medium">No enrollment data available</p>
-      </div>
-    );
+    return <EmptyState message="No enrollment data available" />;
   }
 
   return (

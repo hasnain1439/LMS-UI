@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaUser, FaBook } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 
 export default function AddStudentModal({ isOpen, onClose, onSubmitAPI, courses = [] }) {
   const [studentId, setStudentId] = useState("");
@@ -26,17 +27,26 @@ export default function AddStudentModal({ isOpen, onClose, onSubmitAPI, courses 
     try {
       // Pass an object to match the service expectation
       await onSubmitAPI({ studentId, courseId });
+      
+      // 🔔 Success Notification
+      toast.success("Student enrolled successfully!");
+      
       onClose();
-      // Optional: Add a toast notification here in the parent
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.message || err.response?.data?.error;
       
+      let errorMsg = "Failed to enroll. Please check the IDs.";
+      
       if (err.response && err.response.status === 409) {
-        setError("Student is already enrolled in this course.");
-      } else {
-        setError(msg || "Failed to enroll. Please check the IDs.");
+        errorMsg = "Student is already enrolled in this course.";
+      } else if (msg) {
+        errorMsg = msg;
       }
+
+      setError(errorMsg);
+      // 🔔 Error Notification
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

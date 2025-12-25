@@ -6,10 +6,14 @@ import { LuUsers } from "react-icons/lu";
 import { MdOutlineDeleteOutline, MdOutlineRemoveRedEye } from "react-icons/md";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
 
 import UpdateCourses from "./UpdateCourses.jsx";
 import AddCourses from "./AddCourses";
 import { GetCourses } from "../../../../api/GetCourses";
+import LoadingSpinner from "../../../../component/LoadingSpinner.jsx";
+import EmptyState from "../../../../component/EmptyState.jsx";
+
 
 export default function AboutCourses() {
   const [courses, setCourses] = useState([]);
@@ -38,6 +42,8 @@ export default function AboutCourses() {
       } catch (err) {
         console.error("Failed to fetch courses:", err);
         setError("Failed to load courses.");
+        // 🔔 Error Notification
+        toast.error("Failed to load courses.");
       } finally {
         setLoading(false);
       }
@@ -61,9 +67,13 @@ export default function AboutCourses() {
         prev.map((c) => (c.id === updatedCourse.id ? response.data.course : c))
       );
       setEditCourse(null);
+      // 🔔 Success Notification
+      toast.success("Course updated successfully!");
     } catch (err) {
       console.error("Update course failed:", err.response?.data || err);
-      alert(err.response?.data?.error || "Failed to update course.");
+      // 🔔 Error Notification
+      const msg = err.response?.data?.error || "Failed to update course.";
+      toast.error(msg);
     }
   };
 
@@ -83,9 +93,13 @@ export default function AboutCourses() {
         withCredentials: true,
       });
       setCourses((prev) => prev.filter((_, idx) => idx !== deleteIndex));
+      // 🔔 Success Notification
+      toast.success("Course deleted successfully!");
     } catch (err) {
       console.error("Delete course failed:", err.response?.data || err);
-      alert(err.response?.data?.error || "Failed to delete course.");
+      // 🔔 Error Notification
+      const msg = err.response?.data?.error || "Failed to delete course.";
+      toast.error(msg);
     } finally {
       setDeletePopup(false);
       setDeleteIndex(null);
@@ -96,6 +110,8 @@ export default function AboutCourses() {
   const handleAddCourse = (newCourse) => {
     setCourses((prev) => [newCourse, ...prev]);
     setAddCourses(false);
+    // 🔔 Success Notification
+    toast.success("Course added successfully!");
   };
 
   return (
@@ -141,16 +157,18 @@ export default function AboutCourses() {
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full flex justify-center py-20">
-             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          // ✅ 3. Use Loading Spinner
+          <div className="col-span-full">
+            <LoadingSpinner />
           </div>
         ) : error ? (
           <div className="col-span-full text-center text-red-500 py-10 bg-red-50 rounded-xl">
             {error}
           </div>
         ) : courses.length === 0 ? (
-          <div className="col-span-full text-center text-gray-500 py-20 bg-white rounded-xl border border-dashed border-gray-300">
-            <p className="text-lg">No courses found matching your criteria.</p>
+          // ✅ 4. Use Empty State
+          <div className="col-span-full">
+            <EmptyState message="No courses found matching your criteria." />
           </div>
         ) : (
           courses.map((course, idx) => (
