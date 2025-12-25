@@ -4,25 +4,31 @@ import {
   FaBookOpen,
   FaCheckCircle,
   FaChartBar,
-  FaSpinner,
 } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
-// Ensure these paths match your folder structure
+// 👇 Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
 import StatCard from "../../../../component/StatCard";
+
+// Sub-components
 import LiveSchedule from "./LiveSchedule";
 import ActiveCoursesGrid from "./ActiveCoursesGrid";
 import UpcomingDeadlines from "./UpcomingDeadlines";
+
+// ✅ Use Environment Variable
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Helper to handle profile image URLs
 const getProfileImage = (path) => {
   if (!path) return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
   if (path.startsWith("http")) return path;
-  return `http://localhost:5000${path}`; // Adjust base URL if needed
+  return `${BACKEND_URL}${path}`;
 };
 
 function StdDashboardSection() {
   const [dashboardData, setDashboardData] = useState(null);
-  const [user, setUser] = useState(null); // ✅ Added User State
+  const [user, setUser] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,17 +38,18 @@ function StdDashboardSection() {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
 
-        // ✅ Parallel Fetch: Get Dashboard Stats AND User Profile
+        // Parallel Fetch
         const [dashboardRes, profileRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/dashboard/student", { headers }),
-          axios.get("http://localhost:5000/api/auth/profile", { headers }),
+          axios.get(`${BACKEND_URL}/api/dashboard/student`, { headers }),
+          axios.get(`${BACKEND_URL}/api/auth/profile`, { headers }),
         ]);
 
         setDashboardData(dashboardRes.data);
-        setUser(profileRes.data.user); // Store user details
+        setUser(profileRes.data.user); 
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load dashboard data.");
+        toast.error("Failed to load dashboard.");
       } finally {
         setLoading(false);
       }
@@ -52,17 +59,11 @@ function StdDashboardSection() {
   }, []);
 
   // --- LOADING STATE ---
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center text-blue-600">
-        <FaSpinner className="animate-spin text-3xl" />
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner />;
 
   // --- ERROR STATE ---
   if (error) {
-    return <div className="p-4 text-red-500 bg-red-50 rounded-lg">{error}</div>;
+    return <div className="p-4 text-red-500 bg-red-50 rounded-lg text-center">{error}</div>;
   }
 
   // --- STATS DATA ---
@@ -85,7 +86,8 @@ function StdDashboardSection() {
   ];
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 font-sans text-gray-800">
+      
       {/* 1. Welcome Section */}
       <div className="bg-white p-8 rounded-3xl shadow-md flex flex-col sm:flex-row items-center gap-6">
         <img
@@ -93,8 +95,7 @@ function StdDashboardSection() {
           alt="Profile"
           className="w-20 h-20 rounded-full object-cover border-4 border-blue-50 shadow-sm"
           onError={(e) => {
-            e.target.src =
-              "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+            e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
           }}
         />
         <div className="text-center sm:text-left">
@@ -120,7 +121,7 @@ function StdDashboardSection() {
         ))}
       </div>
 
-      {/* 3. Live Schedule (Passes data correctly) */}
+      {/* 3. Live Schedule */}
       <LiveSchedule data={dashboardData?.schedule || []} />
 
       {/* 4. Active Courses */}

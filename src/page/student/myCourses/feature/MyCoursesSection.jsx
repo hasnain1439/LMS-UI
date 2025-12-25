@@ -3,16 +3,22 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
+  Library,
   AlertTriangle,
   WifiOff,
-  RefreshCw,
-  BookOpen,
-  Loader2,
-  Library,
+  RefreshCw
 } from "lucide-react";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// 👇 2. Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
 
 // 👇 Ensure this path is correct for your project
 import CourseCard from "../../studentDashboard/feature/CourseCard";
+
+// ✅ 3. Use Environment Variable
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function MyCoursesSection() {
   const [courses, setCourses] = useState([]);
@@ -37,7 +43,7 @@ export default function MyCoursesSection() {
       }
 
       const response = await axios.get(
-        "http://localhost:5000/api/courses/student/my-courses",
+        `${BACKEND_URL}/api/courses/student/my-courses`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -46,6 +52,8 @@ export default function MyCoursesSection() {
       setCourses(response.data.courses || []);
     } catch (err) {
       console.error("Fetch Error:", err);
+      toast.error("Failed to load your courses."); // 🔔 Error Toast
+
       if (!err.response) {
         setError("network");
       } else if (err.response.status === 401 || err.response.status === 403) {
@@ -69,19 +77,8 @@ export default function MyCoursesSection() {
 
   // --- Render Helpers ---
 
-  // 1. Loading View
-  if (loading) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-gray-50/50">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-          <p className="text-gray-500 font-medium animate-pulse">
-            Loading your courses...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // 1. Standard Loading
+  if (loading) return <LoadingSpinner />;
 
   // 2. Auth Error View
   if (error === "auth") {
@@ -140,6 +137,7 @@ export default function MyCoursesSection() {
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
       <div className="w-full space-y-8">
+        
         {/* --- Header Section --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -173,45 +171,37 @@ export default function MyCoursesSection() {
 
         {/* --- Content Grid or Empty State --- */}
         {courses.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center h-96">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-              <BookOpen className="text-gray-400 w-10 h-10" />
+          // ✅ Standard Empty State (No Courses Enrolled)
+          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12">
+            <EmptyState 
+                message="You haven't enrolled in any courses yet. Browse the catalog to start your learning journey!" 
+            />
+            <div className="text-center mt-6">
+                <button
+                onClick={() => navigate("/student/courses")}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 active:scale-95"
+                >
+                Browse Catalog
+                </button>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              No Courses Yet
-            </h3>
-            <p className="text-gray-500 mb-8 max-w-sm">
-              You haven't enrolled in any courses yet. Browse the catalog to
-              start your learning journey!
-            </p>
-            <button
-              onClick={() => navigate("/student/courses")}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-200 active:scale-95"
-            >
-              Browse Catalog
-            </button>
           </div>
         ) : (
           <>
             {filteredCourses.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-                <div className="flex justify-center mb-4">
-                  <Search className="text-gray-300 w-12 h-12" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  No matches found
-                </h3>
-                <p className="text-gray-500">
-                  We couldn't find any courses matching "{searchTerm}"
-                </p>
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="mt-4 text-blue-600 font-medium hover:underline"
-                >
-                  Clear search
-                </button>
+              // ✅ Standard Empty State (Search No Results)
+              <div className="bg-white rounded-2xl border border-gray-200 p-12">
+                 <EmptyState message={`We couldn't find any courses matching "${searchTerm}"`} />
+                 <div className="text-center mt-4">
+                    <button
+                        onClick={() => setSearchTerm("")}
+                        className="text-blue-600 font-medium hover:underline"
+                    >
+                        Clear search
+                    </button>
+                 </div>
               </div>
             ) : (
+              // ✅ Course Grid
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
                   <CourseCard

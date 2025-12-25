@@ -1,18 +1,21 @@
 import React from "react";
 import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
-// Accept 'data' as a prop
+// 👇 Import Standard Component
+import EmptyState from "../../../../component/EmptyState";
+
 const LiveSchedule = ({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-400 italic">
-        No classes scheduled for today.
+      <div className="bg-white rounded-xl shadow-md p-6">
+         <EmptyState message="No classes scheduled for today." />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
@@ -25,7 +28,6 @@ const LiveSchedule = ({ data }) => {
       {/* Schedule List */}
       <div className="flex flex-col gap-4">
         {data.map((item) => {
-          // Check backend status string exactly
           const isLive = item.status === "Live Now";
 
           return (
@@ -39,7 +41,6 @@ const LiveSchedule = ({ data }) => {
             >
               {/* Left Side: Time & Details */}
               <div className="flex items-center gap-6 w-full md:w-auto">
-                {/* Time Box */}
                 <div className="flex flex-col items-center justify-center min-w-[60px] text-gray-600">
                   <span
                     className={`font-semibold ${
@@ -54,13 +55,11 @@ const LiveSchedule = ({ data }) => {
                   </div>
                 </div>
 
-                {/* Class Info */}
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <h3 className="font-bold text-gray-900 text-lg">
                       {item.title}
                     </h3>
-                    {/* Live Badge */}
                     {isLive && (
                       <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                         <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
@@ -75,17 +74,14 @@ const LiveSchedule = ({ data }) => {
               {/* Right Side: Action Button */}
               <div className="mt-4 md:mt-0 w-full md:w-auto">
                 <button
-                  // Only disable if it's NOT live. If it IS live, let them click (even if link is missing, so we can alert them)
                   disabled={!isLive} 
-                  
                   onClick={() => {
                     if (!item.meetingLink) {
-                      alert("Error: No meeting link has been provided for this class yet. Please contact your instructor.");
+                      toast.error("No meeting link provided. Contact instructor.");
                     } else {
                       window.open(item.meetingLink, "_blank");
                     }
                   }}
-                  
                   className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all ${
                     isLive
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg cursor-pointer"

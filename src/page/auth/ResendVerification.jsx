@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { FaEnvelope, FaSpinner, FaCheckCircle, FaExclamationCircle, FaArrowLeft } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -24,11 +25,20 @@ const ResendVerification = () => {
         "http://localhost:5000/api/auth/resend-verification",
         { email: values.email }
       );
-      setMessage(res.data.message || "Verification email sent");
+      
+      const successMsg = res.data.message || "Verification email sent";
+      setMessage(successMsg);
+      
+      // 🔔 Notification
+      toast.success(successMsg);
+
       resetForm();
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Network Error. Please try again.";
       setError(errorMsg);
+      
+      // 🔔 Notification
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -38,7 +48,6 @@ const ResendVerification = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         
-        {/* Success View */}
         {message ? (
           <div className="text-center py-6">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
@@ -56,7 +65,6 @@ const ResendVerification = () => {
             </Link>
           </div>
         ) : (
-          /* Form View */
           <>
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Resend Verification</h2>
@@ -65,7 +73,6 @@ const ResendVerification = () => {
               </p>
             </div>
 
-            {/* Error Alert */}
             {error && (
               <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 animate-pulse">
                 <FaExclamationCircle className="text-xl shrink-0" />
@@ -81,7 +88,6 @@ const ResendVerification = () => {
               {({ isSubmitting }) => (
                 <Form className="space-y-6">
                   
-                  {/* Email Input */}
                   <div className="relative group">
                     <FaEnvelope className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                     <Field
@@ -97,7 +103,6 @@ const ResendVerification = () => {
                     />
                   </div>
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -116,7 +121,6 @@ const ResendVerification = () => {
                     )}
                   </button>
 
-                  {/* Back to Login */}
                   <div className="text-center mt-4">
                     <Link 
                       to="/login" 

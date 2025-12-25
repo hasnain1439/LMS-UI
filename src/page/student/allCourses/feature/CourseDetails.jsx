@@ -5,6 +5,7 @@ import {
   Clock, UserCircle2, BookOpen, Calendar, 
   CheckCircle2, ArrowLeft, Loader2, Share2, AlertCircle 
 } from "lucide-react";
+import LoadingSpinner from "../../../../component/LoadingSpinner";
 
 export default function CourseDetails() {
   const { courseId } = useParams();
@@ -82,13 +83,13 @@ export default function CourseDetails() {
     }
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error || !course) return <div className="p-10 text-center text-red-500">{error || "Course not found"}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-20">
       {/* --- Hero Section --- */}
-      <div className="bg-blue-600 text-white">
+      <div className="bg-blue-600 text-white rounded-xl p-6">
         <div className="max-w-7xl mx-auto">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-100 hover:text-white mb-6 transition">
             <ArrowLeft size={20} /> Back to Catalog

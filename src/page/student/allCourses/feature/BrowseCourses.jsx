@@ -1,18 +1,22 @@
-// src/pages/studentDashboard/BrowseCourses.jsx
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
-  Search, Filter, Loader2, AlertTriangle, MonitorPlay, ChevronDown, SearchX
+  Search, Filter, MonitorPlay, ChevronDown, 
 } from "lucide-react";
+import toast from "react-hot-toast"; // 🔔 1. Import Toast
+
+// 👇 Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
 
 // 👇 Import the NEW card component
 import PublicCourseCard from "./PublicCourseCard";
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function BrowseCourses() {
   const [courses, setCourses] = useState([]);
-  // 👇 New state to store IDs of courses the student is already in
   const [enrolledCourseIds, setEnrolledCourseIds] = useState(new Set());
   
   const [loading, setLoading] = useState(true);
@@ -32,14 +36,14 @@ export default function BrowseCourses() {
     setError(null);
     try {
       // A. Fetch the public catalog
-      const catalogReq = axios.get("http://localhost:5000/api/courses/getAllCourses", {
+      const catalogReq = axios.get(`${BACKEND_URL}/api/courses/getAllCourses`, {
         params: { search: searchTerm }
       });
 
       // B. Fetch student's existing enrollments (if logged in) to check status
       let enrolledReq = Promise.resolve({ data: { courses: [] } });
       if (token) {
-        enrolledReq = axios.get("http://localhost:5000/api/courses/student/my-courses", {
+        enrolledReq = axios.get(`${BACKEND_URL}/api/courses/student/my-courses`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -56,6 +60,7 @@ export default function BrowseCourses() {
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data. Please check your connection.");
+      toast.error("Failed to load courses.");
     } finally {
       setLoading(false);
     }
@@ -72,23 +77,33 @@ export default function BrowseCourses() {
   // --- 2. Handlers (Join, Leave, View) ---
 
   const handleView = (courseId) => {
-     navigate(`/student/course-details/${courseId}`);
+      navigate(`/student/course-details/${courseId}`);
   }
 
   const handleJoin = async (courseId, courseName) => {
-    if (!token) { alert("Please log in."); navigate("/login"); return; }
+    if (!token) { 
+        toast.error("Please log in to join courses.");
+        navigate("/login"); 
+        return; 
+    }
+    
     if (!window.confirm(`Join "${courseName}"?`)) return;
 
     setProcessingId(courseId);
     try {
-      await axios.post(`http://localhost:5000/api/courses/${courseId}/enroll`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert(`Successfully joined ${courseName}!`);
+      await axios.post(
+        `${BACKEND_URL}/api/courses/${courseId}/enroll`, 
+        {}, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(`Successfully joined ${courseName}!`);
+      
       // Update local state to reflect change immediately
       setEnrolledCourseIds(prev => new Set(prev).add(courseId));
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to join.");
+      const msg = err.response?.data?.error || "Failed to join.";
+      toast.error(msg);
     } finally {
       setProcessingId(null);
     }
@@ -96,24 +111,28 @@ export default function BrowseCourses() {
 
   const handleLeave = async (courseId, courseName) => {
     if (!token) return;
-    // DANGER ACTION: Make confirmation clear
+    
     const confirmStr = `Are you sure you want to LEAVE "${courseName}"?\n\nYou will lose progress and have to rejoin.`;
     if (!window.confirm(confirmStr)) return;
 
     setProcessingId(courseId);
     try {
-      await axios.delete(`http://localhost:5000/api/courses/${courseId}/enroll`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert(`You have left ${courseName}.`);
-       // Update local state to reflect change immediately by removing the ID
+      await axios.delete(
+        `${BACKEND_URL}/api/courses/${courseId}/enroll`, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(`You have left ${courseName}.`);
+      
+       // Update local state by removing the ID
        setEnrolledCourseIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(courseId);
-          return newSet;
+         const newSet = new Set(prev);
+         newSet.delete(courseId);
+         return newSet;
        });
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to leave course.");
+      const msg = err.response?.data?.error || "Failed to leave course.";
+      toast.error(msg);
     } finally {
       setProcessingId(null);
     }
@@ -128,20 +147,15 @@ export default function BrowseCourses() {
 
 
   // --- Render ---
-  if (loading && courses.length === 0) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-gray-50/50">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-3" />
-        <p className="text-gray-500 font-medium">Loading catalog...</p>
-      </div>
-    );
-  }
+  
+  // 1. Initial Loading
+  if (loading && courses.length === 0) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
       <div className="w-full space-y-8">
         
-        {/* Header Section (Same as before) */}
+        {/* Header Section */}
         <div className="flex flex-col gap-6">
            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
@@ -186,20 +200,26 @@ export default function BrowseCourses() {
 
         {/* Error Banner */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-700">
-            <AlertTriangle size={20} /> {error}
+          <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-center text-red-700 font-medium">
+             {error}
           </div>
         )}
 
-        {/* Course Grid using the NEW PublicCourseCard */}
+        {/* Course Grid */}
         {filteredCourses.length === 0 && !loading ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-16 flex flex-col items-center justify-center text-center">
-            <SearchX className="text-gray-300 w-16 h-16 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No courses found</h3>
-             <p className="text-gray-500 mb-6">Try adjusting your search or filters.</p>
-             <button onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }} className="text-blue-600 font-semibold hover:underline">
-              Clear filters
-            </button>
+          // ✅ Standard Empty State
+          <div className="py-12">
+             <EmptyState 
+                message="No courses found matching your search." 
+             />
+             <div className="text-center mt-4">
+                <button 
+                    onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }} 
+                    className="text-blue-600 font-semibold hover:underline"
+                >
+                  Clear all filters
+                </button>
+             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

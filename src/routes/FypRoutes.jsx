@@ -1,12 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 // ---- Auth Pages ----
-import Registeration from "../page/auth/register/Registeration";
-import Login from "../page/auth/login/Login";
-import VerifyEmail from "../page/auth/verifyEmail/VerifyEmail";
-import ResendVerification from "../page/auth/resendEmaill/ResendVerification";
-import ForgotPassword from "../page/auth/forgetPassword/ForgetPassword";
-import ResetPassword from "../page/auth/resetPassword/ResetPassword";
+import Registeration from "../page/auth/Registeration";
+import Login from "../page/auth/Login";
+import VerifyEmail from "../page/auth/VerifyEmail";
+import ResendVerification from "../page/auth/ResendVerification";
+import ForgotPassword from "../page/auth/ForgetPassword";
+import ResetPassword from "../page/auth/ResetPassword";
 
 // ---- Teacher Dashboard Pages ----
 import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";

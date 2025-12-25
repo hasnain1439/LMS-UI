@@ -2,16 +2,15 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { FaSpinner, FaCheckCircle, FaExclamationCircle, FaEnvelopeOpenText } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
 const VerifyEmail = () => {
-  // ✅ Logic: Get both userId and token from the URL
   const { userId, token } = useParams(); 
   const navigate = useNavigate(); 
   const [status, setStatus] = useState("loading"); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState("Verifying your email...");
 
   useEffect(() => {
-    // Validate params before API call
     if (!userId || !token) {
       setStatus("error");
       setMessage("Invalid verification link. Missing parameters.");
@@ -20,12 +19,15 @@ const VerifyEmail = () => {
 
     const verify = async () => {
       try {
-        // Send both userId and token to backend
         const res = await axios.get(
           `http://localhost:5000/api/auth/verify-email/${userId}/${token}`
         );
-        setMessage(res.data.message || "Email verified successfully!");
+        const successMsg = res.data.message || "Email verified successfully!";
+        setMessage(successMsg);
         setStatus("success");
+        
+        // 🔔 Notification
+        toast.success(successMsg);
       } catch (error) {
         const errMsg =
           error.response?.data?.error ||
@@ -33,12 +35,14 @@ const VerifyEmail = () => {
           "Verification failed. The link may be invalid or expired.";
         setMessage(errMsg);
         setStatus("error");
+        
+        // 🔔 Notification
+        toast.error(errMsg);
       }
     };
     verify();
   }, [userId, token]);
 
-  // ✅ Auto redirect on success
   useEffect(() => {
     if (status === "success") {
       const timer = setTimeout(() => {
@@ -52,7 +56,6 @@ const VerifyEmail = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
         
-        {/* 1. LOADING STATE */}
         {status === "loading" && (
           <div className="py-8">
             <div className="relative mb-6">
@@ -66,7 +69,6 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* 2. SUCCESS STATE */}
         {status === "success" && (
           <div className="py-6">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
@@ -82,7 +84,6 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* 3. ERROR STATE */}
         {status === "error" && (
           <div className="py-6">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">

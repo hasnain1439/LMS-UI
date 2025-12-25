@@ -63,7 +63,7 @@ export default function PublicCourseCard({
         </div>
 
         {/* Description */}
-        <p className="text-gray-500 text-sm mb-6 line-clamp-3 flex-grow">
+        <p className="text-gray-500 text-sm mb-6 line-clamp-3 flex-grow leading-relaxed">
           {course.description || "No description provided for this course."}
         </p>
 
@@ -75,20 +75,19 @@ export default function PublicCourseCard({
           </div>
           <div className="flex items-center gap-1.5">
             <Users size={16} className="text-gray-400" />
-            {/* Note: enrollmentCount must be provided by your backend API query */}
             <span>{course.enrollmentCount || 0} Enrolled</span>
           </div>
         </div>
 
-        {/* --- Action Buttons Area (The main logic) --- */}
+        {/* --- Action Buttons Area --- */}
         <div className="mt-auto space-y-3">
           
           {/* ----- State 1: User IS enrolled ----- */}
           {isEnrolled ? (
             <div className="flex flex-col gap-3">
               {/* Enrolled Badge indicator */}
-              <div className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-semibold flex items-center justify-center gap-2">
-                <CheckCircle2 size={18} />
+              <div className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm">
+                <CheckCircle2 size={16} />
                 Already Enrolled
               </div>
               
@@ -96,21 +95,21 @@ export default function PublicCourseCard({
                  {/* View Button */}
                 <button
                   onClick={onView}
-                  className="flex-1 py-2.5 bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm"
                 >
-                   <Eye size={18} /> View
+                   <Eye size={16} /> View
                 </button>
                  {/* Leave Button */}
                 <button
                   onClick={onLeave}
                   disabled={isProcessingAction}
-                  className="flex-none px-4 py-2.5 bg-white border-2 border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="flex-none px-4 py-2.5 bg-white border border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-70 text-sm"
                 >
                   {isProcessingAction ? (
-                    <Loader2 size={18} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <>
-                      <LogOut size={18} /> Leave
+                      <LogOut size={16} /> Leave
                     </>
                   )}
                 </button>
@@ -122,20 +121,20 @@ export default function PublicCourseCard({
               {/* View Button */}
               <button
                 onClick={onView}
-                 className="flex-1 py-2.5 bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                 className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm"
               >
-                 <Eye size={18} /> View
+                  <Eye size={16} /> View
               </button>
               
               {/* Join Button */}
               <button
                 onClick={onJoin}
                 disabled={isProcessingAction}
-                className="flex-[2] py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex-[2] py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-md shadow-blue-200 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
               >
                 {isProcessingAction ? (
                   <>
-                    <Loader2 size={18} className="animate-spin text-white" />
+                    <Loader2 size={16} className="animate-spin text-white" />
                     <span>Joining...</span>
                   </>
                 ) : (

@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Clock, CheckCircle2, AlertCircle, Save, ArrowLeft, Loader2 } from "lucide-react";
+import { Clock, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast"; // 🔔 Import Toast
+
+// 👇 Import Standard Component
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function TakeQuiz() {
   const { quizId } = useParams();
@@ -10,8 +16,8 @@ export default function TakeQuiz() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0); // in seconds
-  const [answers, setAnswers] = useState({}); // { questionId: selectedOptionIndex }
+  const [timeLeft, setTimeLeft] = useState(0); 
+  const [answers, setAnswers] = useState({}); 
   const [error, setError] = useState("");
 
   // 1. Fetch Quiz Data
@@ -19,13 +25,14 @@ export default function TakeQuiz() {
     const fetchQuiz = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`http://localhost:5000/api/quizzes/${quizId}`, {
+        const res = await axios.get(`${BACKEND_URL}/api/quizzes/${quizId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setQuiz(res.data.quiz);
         setTimeLeft(res.data.quiz.timeLimitMinutes * 60);
       } catch (err) {
         setError(err.response?.data?.error || "Failed to load quiz");
+        toast.error("Failed to load quiz.");
       } finally {
         setLoading(false);
       }
@@ -70,33 +77,33 @@ export default function TakeQuiz() {
     try {
       const token = localStorage.getItem("token");
       
-      // Format answers for backend: [{ questionId, selectedIndex }]
       const formattedAnswers = quiz.questions.map(q => ({
         questionId: q.id,
-        selectedIndex: answers[q.id] !== undefined ? answers[q.id] : -1 // -1 if skipped
+        selectedIndex: answers[q.id] !== undefined ? answers[q.id] : -1 
       }));
 
       await axios.post(
-        `http://localhost:5000/api/quizzes/${quizId}/submit`,
+        `${BACKEND_URL}/api/quizzes/${quizId}/submit`,
         { answers: formattedAnswers },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      toast.success("Quiz submitted successfully!");
       navigate(`/student/quiz-result/${quizId}`); // Go to Result Page
     } catch (err) {
-      alert("Submission failed. Please try again.");
+      toast.error("Submission failed. Please try again.");
       setSubmitting(false);
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <div className="text-center p-10 text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-800">
       
       {/* Sticky Header with Timer */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center">
+      <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200 flex justify-between items-center px-6 py-4">
         <div>
           <h2 className="font-bold text-gray-900 text-lg line-clamp-1">{quiz.title}</h2>
           <p className="text-xs text-gray-500">{quiz.totalQuestions} Questions • {quiz.totalMarks} Marks</p>
@@ -107,9 +114,9 @@ export default function TakeQuiz() {
         </div>
       </div>
 
-      <div className="w-full space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8 mt-8 px-4">
         {quiz.questions.map((q, i) => (
-          <div key={q.id} className="bg-white p-6 rounded-3xl shadow-lg">
+          <div key={q.id} className="bg-white p-6 rounded-3xl shadow-md border border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 mb-6 flex gap-3">
               <span className="flex-shrink-0 bg-gray-100 text-gray-600 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold">{i + 1}</span>
               {q.questionText}
@@ -141,7 +148,7 @@ export default function TakeQuiz() {
           </div>
         ))}
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-4 pb-8">
           <button
             onClick={handleSubmit}
             disabled={submitting}

@@ -4,6 +4,7 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import { FaLock, FaSpinner, FaCheckCircle, FaExclamationCircle, FaArrowLeft } from "react-icons/fa";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -35,17 +36,26 @@ const ResetPassword = () => {
         }
       );
 
+      const successMsg = res.data.message || "Password reset successful! You can now login.";
       setStatus({ 
         type: "success", 
-        message: res.data.message || "Password reset successful! You can now login." 
+        message: successMsg 
       });
+      
+      // 🔔 Notification
+      toast.success(successMsg);
+
       resetForm();
     } catch (error) {
       console.error("Reset Password Error:", error);
+      const errorMsg = error.response?.data?.error || "Link invalid or expired. Please try again.";
       setStatus({ 
         type: "error", 
-        message: error.response?.data?.error || "Link invalid or expired. Please try again." 
+        message: errorMsg 
       });
+
+      // 🔔 Notification
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -55,7 +65,6 @@ const ResetPassword = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Set New Password</h2>
           <p className="text-gray-500 mt-2 text-sm">
@@ -63,7 +72,6 @@ const ResetPassword = () => {
           </p>
         </div>
 
-        {/* Status Alerts */}
         {status.message && (
           <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
             status.type === "success" 
@@ -75,7 +83,6 @@ const ResetPassword = () => {
           </div>
         )}
 
-        {/* If success, show Login button, else show Form */}
         {status.type === "success" ? (
           <div className="text-center">
             <Link 
@@ -94,7 +101,6 @@ const ResetPassword = () => {
             {({ isSubmitting }) => (
               <Form className="space-y-5">
                 
-                {/* Password Field */}
                 <div className="relative group">
                   <FaLock className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                   <Field
@@ -106,7 +112,6 @@ const ResetPassword = () => {
                   <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1 ml-1" />
                 </div>
 
-                {/* Confirm Password Field */}
                 <div className="relative group">
                   <FaLock className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                   <Field
@@ -118,7 +123,6 @@ const ResetPassword = () => {
                   <ErrorMessage name="confirmPassword" component="p" className="text-red-500 text-xs mt-1 ml-1" />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -137,7 +141,6 @@ const ResetPassword = () => {
                   )}
                 </button>
 
-                {/* Back Link */}
                 <div className="text-center mt-4">
                   <Link 
                     to="/login" 

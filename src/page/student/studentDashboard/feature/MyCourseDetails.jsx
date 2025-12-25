@@ -2,19 +2,24 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { 
-  ArrowLeft, BookOpen, Clock, Calendar, Users, 
-  Layers, CheckCircle2, Loader2, AlertCircle 
+  ArrowLeft, BookOpen, Calendar, Users, 
+  Layers, CheckCircle2, AlertCircle 
 } from "lucide-react";
+import toast from "react-hot-toast"; // 🔔 Import Toast
+
+// 👇 Import Standard Component
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function MyCourseDetails() {
-  const { courseId } = useParams(); // 1. Get ID from URL
+  const { courseId } = useParams();
   const navigate = useNavigate();
   
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 2. Fetch Data using the Endpoint
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
@@ -25,15 +30,15 @@ export default function MyCourseDetails() {
         }
 
         const res = await axios.get(
-          `http://localhost:5000/api/courses/${courseId}`, 
+          `${BACKEND_URL}/api/courses/${courseId}`, 
           { headers: { Authorization: `Bearer ${token}` } }
         );
         
-        // The controller returns { course: ... }
         setCourse(res.data.course);
       } catch (err) {
         console.error("Error fetching course:", err);
         setError("Failed to load course details.");
+        toast.error("Failed to load course.");
       } finally {
         setLoading(false);
       }
@@ -43,14 +48,7 @@ export default function MyCourseDetails() {
   }, [courseId, navigate]);
 
   // Loading State
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-        <span className="text-gray-500 font-medium">Loading course...</span>
-      </div>
-    </div>
-  );
+  if (loading) return <LoadingSpinner />;
 
   // Error State
   if (error) return (

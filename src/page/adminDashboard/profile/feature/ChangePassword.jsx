@@ -4,9 +4,11 @@ import * as Yup from "yup";
 import { Lock, Eye, EyeOff, ArrowLeft, KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast"; // 🔔 1. Import Toast
+import toast from "react-hot-toast";
 
-// ✅ Validation Schema
+// ✅ Use Environment Variable
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const validationSchema = Yup.object({
   currentPassword: Yup.string().required("Current password is required"),
   newPassword: Yup.string()
@@ -23,46 +25,58 @@ const validationSchema = Yup.object({
 
 const ChangePassword = () => {
   const navigate = useNavigate();
-  
-  // Toggle Visibility States
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const changePasswordHandler = async (values, { setSubmitting, resetForm }) => {
     try {
+      // 1️⃣ Get Token from Local Storage
+      const token = localStorage.getItem("token");
+
+      // 2️⃣ If no token, force login
+      if (!token) {
+        toast.error("Session expired. Please login again.");
+        navigate("/login");
+        return;
+      }
+
       const res = await axios.put(
-        "http://localhost:5000/api/auth/change-password",
+        `${BACKEND_URL}/api/auth/change-password`,
         {
           currentPassword: values.currentPassword,
           newPassword: values.newPassword,
           confirmPassword: values.confirmNewPassword,
         },
-        { withCredentials: true }
+        {
+          // 3️⃣ ADD THIS HEADER
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true 
+        }
       );
 
-      // 🔔 Success Toast
       toast.success(res.data.message || "Password changed successfully!");
-      
       resetForm();
-
-      // Redirect logic
       setTimeout(() => navigate("/login"), 2000);
+
     } catch (err) {
       console.error(err);
       const msg = err.response?.data?.error || "Something went wrong";
-      // 🔔 Error Toast
       toast.error(msg);
+      
+      // If error is 401, redirect to login
+      if(err.response && err.response.status === 401) {
+          navigate("/login");
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-gray-800">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center sm:p-4 font-sans text-gray-800">
+      <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl overflow-hidden">
         
-        {/* Header */}
         <div className="px-8 py-6 bg-gray-50/50 border-b border-gray-100 flex items-center gap-3">
           <button 
             onClick={() => navigate(-1)}
@@ -80,10 +94,6 @@ const ChangePassword = () => {
             </div>
           </div>
           
-          <p className="text-center text-gray-500 text-sm mb-8">
-            Your new password must be different from previous used passwords.
-          </p>
-
           <Formik
             initialValues={{
               currentPassword: "",
@@ -95,7 +105,6 @@ const ChangePassword = () => {
           >
             {({ isSubmitting }) => (
               <Form className="space-y-5">
-                
                 {/* Current Password */}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Current Password</label>
@@ -105,13 +114,9 @@ const ChangePassword = () => {
                       type={showCurrent ? "text" : "password"}
                       name="currentPassword"
                       placeholder="Enter current password"
-                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border border-transparent rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrent(!showCurrent)}
-                      className="absolute top-3.5 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                    >
+                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute top-3.5 right-4 text-gray-400">
                       {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
@@ -127,20 +132,16 @@ const ChangePassword = () => {
                       type={showNew ? "text" : "password"}
                       name="newPassword"
                       placeholder="Enter new password"
-                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border border-transparent rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowNew(!showNew)}
-                      className="absolute top-3.5 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                    >
+                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute top-3.5 right-4 text-gray-400">
                       {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   <ErrorMessage name="newPassword" component="p" className="text-red-500 text-xs mt-1.5 font-medium ml-1" />
                 </div>
 
-                {/* Confirm New Password */}
+                {/* Confirm Password */}
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Confirm Password</label>
                   <div className="relative">
@@ -149,28 +150,22 @@ const ChangePassword = () => {
                       type={showConfirm ? "text" : "password"}
                       name="confirmNewPassword"
                       placeholder="Re-enter new password"
-                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border border-transparent rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                      className="w-full pl-11 pr-11 py-3 bg-gray-50 border rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute top-3.5 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
-                    >
+                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-3.5 right-4 text-gray-400">
                       {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   <ErrorMessage name="confirmNewPassword" component="p" className="text-red-500 text-xs mt-1.5 font-medium ml-1" />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all transform active:scale-[0.98] disabled:opacity-70"
                 >
-                  {isSubmitting ? "Updating Password..." : "Update Password"}
+                  {isSubmitting ? "Updating..." : "Update Password"}
                 </button>
-
               </Form>
             )}
           </Formik>

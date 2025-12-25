@@ -4,11 +4,11 @@ import * as Yup from "yup";
 import axios from "axios";
 import { FaEnvelope, FaSpinner, FaArrowLeft, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
 const ForgotPassword = () => {
   const [status, setStatus] = useState({ type: "", message: "" });
 
-  // ✅ Validation Schema
   const validationSchema = Yup.object({
     email: Yup.string()
       .email("Invalid email address")
@@ -16,27 +16,35 @@ const ForgotPassword = () => {
   });
 
   const handleForgotPassword = async (values, { setSubmitting, resetForm }) => {
-    setStatus({ type: "", message: "" }); // Clear previous messages
+    setStatus({ type: "", message: "" });
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/forgot-password", {
         email: values.email,
       });
 
-      // ✅ Show Success Message
+      const successMsg = res.data.message || "Reset link sent! Please check your inbox.";
+      
       setStatus({ 
         type: "success", 
-        message: res.data.message || "Reset link sent! Please check your inbox." 
+        message: successMsg 
       });
+      
+      // 🔔 Notification
+      toast.success(successMsg);
       
       resetForm();
     } catch (error) {
       console.error("Forgot Password Error:", error);
-      // ❌ Show Error Message
+      const errorMsg = error.response?.data?.error || "Failed to send reset link. Please try again.";
+      
       setStatus({ 
         type: "error", 
-        message: error.response?.data?.error || "Failed to send reset link. Please try again." 
+        message: errorMsg 
       });
+
+      // 🔔 Notification
+      toast.error(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -46,7 +54,6 @@ const ForgotPassword = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         
-        {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Forgot Password?</h2>
           <p className="text-gray-500 mt-2 text-sm">
@@ -54,7 +61,6 @@ const ForgotPassword = () => {
           </p>
         </div>
 
-        {/* Status Alerts */}
         {status.message && (
           <div className={`mb-6 p-4 rounded-lg border flex items-center gap-3 ${
             status.type === "success" 
@@ -74,7 +80,6 @@ const ForgotPassword = () => {
           {({ isSubmitting }) => (
             <Form className="space-y-6">
               
-              {/* Email Input */}
               <div className="relative group">
                 <FaEnvelope className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                 <Field
@@ -90,7 +95,6 @@ const ForgotPassword = () => {
                 />
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -109,7 +113,6 @@ const ForgotPassword = () => {
                 )}
               </button>
 
-              {/* Back to Login */}
               <div className="text-center mt-4">
                 <Link 
                   to="/login" 

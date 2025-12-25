@@ -2,15 +2,16 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
-  FileText,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Search,
-  Loader2,
-  Calendar,
-  Eye
+  FileText, Clock, CheckCircle, AlertCircle, Search, 
+  Calendar, Eye
 } from "lucide-react";
+import toast from "react-hot-toast"; // 🔔 Import Toast
+
+// 👇 Import Standard Components
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+import EmptyState from "../../../../component/EmptyState";
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function StudentQuizzesSection() {
   const [quizzes, setQuizzes] = useState([]);
@@ -27,7 +28,7 @@ export default function StudentQuizzesSection() {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://localhost:5000/api/quizzes/student-quizzes",
+          `${BACKEND_URL}/api/quizzes/student-quizzes`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -36,6 +37,7 @@ export default function StudentQuizzesSection() {
       } catch (err) {
         console.error("Error fetching quizzes:", err);
         setError("Failed to load quizzes.");
+        toast.error("Failed to load quizzes.");
       } finally {
         setLoading(false);
       }
@@ -105,18 +107,13 @@ export default function StudentQuizzesSection() {
     if (quiz.isSubmitted) {
       navigate(`/student/quiz-result/${quiz.id}`);
     } else if (now > deadline) {
-      alert("This quiz is overdue and cannot be attempted.");
+      toast.error("This quiz is overdue and cannot be attempted.");
     } else {
       navigate(`/student/take-quiz/${quiz.id}`);
     }
   };
 
-  if (loading)
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={40} />
-      </div>
-    );
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-800">
@@ -170,20 +167,15 @@ export default function StudentQuizzesSection() {
 
         {/* --- Content Area --- */}
         {filteredQuizzes.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <FileText className="text-gray-300" size={32} />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">
-              No quizzes found
-            </h3>
-            <p className="text-gray-500">
-              You're all caught up! Check back later.
-            </p>
+          // ✅ Standard Empty State
+          <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-12">
+             <EmptyState 
+                message="No quizzes found matching your criteria." 
+             />
           </div>
         ) : filter === "completed" ? (
           /* --- Table View for Completed Quizzes --- */
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -201,7 +193,7 @@ export default function StudentQuizzesSection() {
                     const percentage = Math.round(
                       (quiz.submissionScore / quiz.totalMarks) * 100
                     );
-                    const isPass = percentage >= 50; // Example pass criteria
+                    const isPass = percentage >= 50;
 
                     return (
                       <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors">

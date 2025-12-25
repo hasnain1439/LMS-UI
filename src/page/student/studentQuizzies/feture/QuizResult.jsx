@@ -3,6 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle2, XCircle, ArrowLeft, Trophy } from "lucide-react";
 
+// 👇 Import Standard Component
+import LoadingSpinner from "../../../../component/LoadingSpinner";
+
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function QuizResult() {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -13,7 +18,7 @@ export default function QuizResult() {
     const fetchResult = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`http://localhost:5000/api/quizzes/${quizId}/result`, {
+        const res = await axios.get(`${BACKEND_URL}/api/quizzes/${quizId}/result`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setResult(res.data.result);
@@ -26,7 +31,7 @@ export default function QuizResult() {
     fetchResult();
   }, [quizId]);
 
-  if (loading) return <div className="min-h-screen flex justify-center items-center text-gray-500">Calculating results...</div>;
+  if (loading) return <LoadingSpinner />;
   if (!result) return <div className="p-10 text-center text-red-500">Result not found.</div>;
 
   // Calculate pass/fail color
@@ -45,7 +50,7 @@ export default function QuizResult() {
         </button>
 
         {/* Score Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden text-center">
+        <div className="bg-white rounded-3xl shadow-md overflow-hidden text-center p-8">
           <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${bgClass}`}>
             <Trophy size={40} className={gradeColor} />
           </div>
@@ -60,45 +65,38 @@ export default function QuizResult() {
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-gray-900 px-2">Detailed Analysis</h2>
           
-          {result.answers.map((ans, i) => {
-            // Find the question text from your question list (requires fetching questions or storing them)
-            // Assuming 'ans' object structure from backend includes basic question info OR you map it.
-            // If backend only sends IDs, this part might need adjustment to fetch full question text.
-            // For now, displaying status clearly.
-            
-            return (
-              <div key={i} className={`bg-white p-6 rounded-2xl border shadow-sm ${ans.isCorrect ? 'border-green-200' : 'border-red-200'}`}>
-                <div className="flex items-start gap-4 mb-4">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${ans.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {i + 1}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Question {i + 1}</h3> {/* Replace with question text if available */}
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                        {ans.isCorrect ? (
-                            <span className="text-green-600 flex items-center gap-1"><CheckCircle2 size={16}/> Correct</span>
-                        ) : (
-                            <span className="text-red-600 flex items-center gap-1"><XCircle size={16}/> Incorrect</span>
-                        )}
-                    </div>
-                  </div>
+          {result.answers.map((ans, i) => (
+            <div key={i} className={`bg-white p-6 rounded-2xl border shadow-sm ${ans.isCorrect ? 'border-green-200' : 'border-red-200'}`}>
+              <div className="flex items-start gap-4 mb-4">
+                <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold ${ans.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {i + 1}
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className={`p-4 rounded-xl border ${ans.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <span className="block text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Your Answer</span>
-                        <p className="font-semibold">Option {ans.selectedIndex + 1}</p>
-                    </div>
-                    {!ans.isCorrect && (
-                        <div className="p-4 rounded-xl border bg-green-50 border-green-200">
-                            <span className="block text-xs font-bold uppercase tracking-wider text-green-700 mb-1">Correct Answer</span>
-                            <p className="font-semibold text-green-800">Option {ans.correctIndex + 1}</p>
-                        </div>
-                    )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">Question {i + 1}</h3> 
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                      {ans.isCorrect ? (
+                          <span className="text-green-600 flex items-center gap-1"><CheckCircle2 size={16}/> Correct</span>
+                      ) : (
+                          <span className="text-red-600 flex items-center gap-1"><XCircle size={16}/> Incorrect</span>
+                      )}
+                  </div>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className={`p-4 rounded-xl border ${ans.isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                      <span className="block text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Your Answer</span>
+                      <p className="font-semibold">Option {ans.selectedIndex + 1}</p>
+                  </div>
+                  {!ans.isCorrect && (
+                      <div className="p-4 rounded-xl border bg-green-50 border-green-200">
+                          <span className="block text-xs font-bold uppercase tracking-wider text-green-700 mb-1">Correct Answer</span>
+                          <p className="font-semibold text-green-800">Option {ans.correctIndex + 1}</p>
+                      </div>
+                  )}
+              </div>
+            </div>
+          ))}
         </div>
 
       </div>

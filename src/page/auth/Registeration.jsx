@@ -4,13 +4,13 @@ import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaUser, FaIdBadge, FaCloudUploadAlt, FaSpinner, FaExclamationCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast"; // 🔔 Import Toast
 
 const Registration = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
-  const [fileName, setFileName] = useState(""); // To display selected file name
+  const [fileName, setFileName] = useState(""); 
 
-  // ✅ Validation Schema
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
     lastName: Yup.string().required("Last name is required"),
@@ -27,7 +27,7 @@ const Registration = () => {
   });
 
   const postData = async (values, { resetForm, setSubmitting }) => {
-    setServerError(""); // Clear previous errors
+    setServerError(""); 
     
     const formData = new FormData();
     formData.append("firstName", values.firstName);
@@ -51,29 +51,33 @@ const Registration = () => {
       const token = res.data.token;
       if (token) localStorage.setItem("token", token);
       
+      // 🔔 Notification
+      toast.success("Account created successfully!");
       console.log("✅ Registration successful:", res.data);
+      
       navigate(`/verify-email/${token}`);
       resetForm();
     } catch (error) {
       console.error("❌ Registration failed:", error);
       const msg = error.response?.data?.error || "Registration failed. Please try again.";
       setServerError(msg);
+      
+      // 🔔 Notification
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen  bg-gray-bg px-4 py-10">
+    <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4 py-10">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800 tracking-tight">Create Account</h2>
           <p className="text-gray-500 mt-2 text-sm">Join us and start your journey today</p>
         </div>
 
-        {/* Server Error Alert */}
         {serverError && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 animate-pulse">
             <FaExclamationCircle className="text-xl shrink-0" />
@@ -96,9 +100,7 @@ const Registration = () => {
           {({ setFieldValue, isSubmitting }) => (
             <Form className="space-y-5">
               
-              {/* Name Row */}
               <div className="flex flex-col sm:flex-row gap-4">
-                {/* First Name */}
                 <div className="w-full relative group">
                   <FaUser className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                   <Field
@@ -110,7 +112,6 @@ const Registration = () => {
                   <ErrorMessage name="firstName" component="p" className="text-red-500 text-xs mt-1 ml-1" />
                 </div>
 
-                {/* Last Name */}
                 <div className="w-full relative group">
                   <FaUser className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                   <Field
@@ -123,7 +124,6 @@ const Registration = () => {
                 </div>
               </div>
 
-              {/* Email */}
               <div className="relative group">
                 <FaEnvelope className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                 <Field
@@ -135,7 +135,6 @@ const Registration = () => {
                 <ErrorMessage name="email" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 
-              {/* Password */}
               <div className="relative group">
                 <FaLock className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                 <Field
@@ -147,7 +146,6 @@ const Registration = () => {
                 <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 
-              {/* Role Selection */}
               <div className="relative group">
                 <FaIdBadge className="absolute top-3.5 left-4 text-gray-400 group-focus-within:text-blue-600 transition-colors z-10" />
                 <Field
@@ -162,10 +160,9 @@ const Registration = () => {
                 <ErrorMessage name="role" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 
-              {/* Custom File Upload */}
               <div className="pt-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Upload Face Image (For Login)
+                  Upload Face Image (For Verification)
                 </label>
                 <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer group">
                   <input
@@ -194,7 +191,6 @@ const Registration = () => {
                 <ErrorMessage name="faceImage" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -209,11 +205,10 @@ const Registration = () => {
                     <FaSpinner className="animate-spin" /> Creating Account...
                   </>
                 ) : (
-                  "Register"
+                  "Create Account"
                 )}
               </button>
 
-              {/* Login Link */}
               <div className="text-center mt-6">
                 <p className="text-sm text-gray-600">
                   Already have an account?{" "}
