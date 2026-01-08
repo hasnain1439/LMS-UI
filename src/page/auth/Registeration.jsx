@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FaEnvelope, FaLock, FaUser, FaIdBadge, FaCloudUploadAlt, FaSpinner, FaExclamationCircle } from "react-icons/fa";
@@ -10,6 +10,27 @@ const Registration = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
   const [fileName, setFileName] = useState(""); 
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (stream && video) {
+      video.srcObject = stream;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => console.warn("Autoplay prevented:", err));
+      }
+    }
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, [stream]);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
@@ -162,32 +183,89 @@ const Registration = () => {
 
               <div className="pt-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Upload Face Image (For Verification)
+                  Capture Face Image (For Verification)
                 </label>
-                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer group">
-                  <input
-                    type="file"
-                    name="faceImage"
-                    accept="image/*"
-                    onChange={(event) => {
-                      const file = event.currentTarget.files[0];
-                      setFieldValue("faceImage", file);
-                      setFileName(file ? file.name : "");
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const s = await navigator.mediaDevices.getUserMedia({ video: true });
+                        setStream(s);
+                        setShowCamera(true);
+                      } catch (err) {
+                        console.error("Camera error:", err);
+                        toast.error("Unable to access camera");
+                      }
                     }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <FaCloudUploadAlt className="text-3xl text-gray-400 group-hover:text-blue-500 transition-colors" />
-                    <span className="text-sm text-gray-500 font-medium group-hover:text-gray-700">
-                      {fileName ? (
-                        <span className="text-blue-600 font-bold">{fileName}</span>
-                      ) : (
-                        "Click to upload or drag and drop"
-                      )}
-                    </span>
-                    {!fileName && <span className="text-xs text-gray-400">JPG, PNG (Max 5MB)</span>}
-                  </div>
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                  >
+                    Capture Live
+                  </button>
+                  <span className="text-sm text-gray-500">Make sure your face is centered</span>
                 </div>
+
+                {showCamera && (
+                  <div className="mt-3 border rounded-lg p-3 bg-gray-50">
+                    <div className="flex flex-col items-center gap-2">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full max-w-sm rounded-md bg-black"
+                      />
+                      <canvas ref={canvasRef} style={{ display: "none" }} />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const video = videoRef.current;
+                            const canvas = canvasRef.current;
+                            if (!video || !canvas) return;
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            const ctx = canvas.getContext("2d");
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            canvas.toBlob((blob) => {
+                              if (!blob) return;
+                              const file = new File([blob], "face_capture.png", { type: blob.type });
+                              setFieldValue("faceImage", file);
+                              setFileName(file.name);
+                              toast.success("Captured image ready");
+                              if (stream) {
+                                stream.getTracks().forEach((t) => t.stop());
+                                setStream(null);
+                              }
+                              setShowCamera(false);
+                            }, "image/png");
+                          }}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                        >
+                          Take Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (stream) {
+                              stream.getTracks().forEach((t) => t.stop());
+                              setStream(null);
+                            }
+                            setShowCamera(false);
+                          }}
+                          className="px-3 py-2 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {fileName && (
+                  <p className="text-sm text-blue-600 mt-2 font-medium">{fileName}</p>
+                )}
+
                 <ErrorMessage name="faceImage" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 

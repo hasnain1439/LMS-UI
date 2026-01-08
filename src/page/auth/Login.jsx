@@ -1,26 +1,19 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { FaEnvelope, FaLock, FaSpinner, FaExclamationCircle, FaCloudUploadAlt } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaSpinner, FaExclamationCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast"; // 🔔 Import Toast
 
-const validationSchema = Yup.object().test(
-  "oneOfRequired",
-  "Provide Email + Password OR Face Image",
-  function (values) {
-    return (
-      (values.email && values.password) ||
-      values.faceImage
-    );
-  }
-);
+const validationSchema = Yup.object().shape({
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  password: Yup.string().required("Password is required"),
+});
 
 const Login = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
-  const [fileName, setFileName] = useState(""); 
 
   const loginHandler = async (values, { setSubmitting }) => {
     setServerError(""); 
@@ -29,7 +22,6 @@ const Login = () => {
       const formData = new FormData();
       if (values.email) formData.append("email", values.email);
       if (values.password) formData.append("password", values.password);
-      if (values.faceImage) formData.append("faceImage", values.faceImage);
 
       const res = await axios.post(
         "http://localhost:5000/api/auth/login",
@@ -94,7 +86,6 @@ const Login = () => {
           initialValues={{
             email: "",
             password: "",
-            faceImage: null,
           }}
           validationSchema={validationSchema}
           onSubmit={loginHandler}
@@ -124,35 +115,7 @@ const Login = () => {
                 <ErrorMessage name="password" component="p" className="text-red-500 text-xs mt-1 ml-1" />
               </div>
 
-              <div className="pt-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Or Login with Face Recognition
-                </label>
-                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer group">
-                  <input
-                    type="file"
-                    name="faceImage"
-                    accept="image/*"
-                    onChange={(event) => {
-                      const file = event.currentTarget.files[0];
-                      setFieldValue("faceImage", file);
-                      setFileName(file ? file.name : "");
-                    }}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <FaCloudUploadAlt className="text-3xl text-gray-400 group-hover:text-blue-500 transition-colors" />
-                    <span className="text-sm text-gray-500 font-medium group-hover:text-gray-700">
-                      {fileName ? (
-                        <span className="text-blue-600 font-bold">{fileName}</span>
-                      ) : (
-                        "Click to upload or drag face image"
-                      )}
-                    </span>
-                  </div>
-                </div>
-                <ErrorMessage name="faceImage" component="p" className="text-red-500 text-xs mt-1 ml-1" />
-              </div>
+              {/* removed face-upload / camera capture UI - login by email & password only */}
 
               <div className="text-right">
                 <Link
