@@ -286,7 +286,7 @@ const Registration = () => {
               </div>
 
               {showCamera && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed -inset-10 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200 overflow-hidden">
                   <div className="relative w-full max-w-lg bg-gray-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center">
                     
                     <div className="absolute top-0 w-full p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">

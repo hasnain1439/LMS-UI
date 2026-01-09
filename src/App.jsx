@@ -6,7 +6,6 @@ import FypRoutes from "./routes/FypRoutes";
 function App() {
   return (
     <UserProvider>
-      // Integrating the routing component
       <FypRoutes />
     </UserProvider>
   );

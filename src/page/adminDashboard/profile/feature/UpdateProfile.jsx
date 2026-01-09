@@ -123,7 +123,7 @@ const UpdateProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center py-10 px-4">
-      <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg overflow-hidden">
         
         {/* Header */}
         <div className="bg-blue-600 px-6 py-4 flex items-center gap-4">

@@ -70,7 +70,7 @@ function Sidebar({ isOpen, setIsOpen, menuItems }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between hidden lg:flex h-screen fixed left-0 top-0 overflow-y-auto z-40">
+      <aside className="w-64 bg-white flex flex-col justify-between hidden lg:flex h-screen fixed left-0 top-0 overflow-y-auto z-40">
         <div>
           <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
             <div className="flex items-center justify-center p-2 bg-blue-600 rounded-lg text-white text-xl shadow-sm">

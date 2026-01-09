@@ -31,7 +31,7 @@ const Topbar = ({ toggleSidebar }) => {
   const userRole = user?.role || "Guest";
 
   return (
-    <div className="bg-white h-16 shadow-sm border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-30">
+    <div className="bg-white h-16 shadow-sm flex items-center justify-between px-6 sticky top-0 z-30">
       
       {/* Left Side */}
       <div className="flex items-center gap-4">
