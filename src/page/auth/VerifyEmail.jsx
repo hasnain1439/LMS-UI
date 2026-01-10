@@ -1,12 +1,12 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { FaSpinner, FaCheckCircle, FaExclamationCircle, FaEnvelopeOpenText } from "react-icons/fa";
-import toast from "react-hot-toast"; // 🔔 Import Toast
+import { FaSpinner, FaCheckCircle, FaExclamationCircle, FaEnvelopeOpenText, FaArrowLeft } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const VerifyEmail = () => {
-  const { userId, token } = useParams(); 
-  const navigate = useNavigate(); 
+  const { userId, token } = useParams();
+  const navigate = useNavigate();
   const [status, setStatus] = useState("loading"); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState("Verifying your email...");
 
@@ -25,8 +25,6 @@ const VerifyEmail = () => {
         const successMsg = res.data.message || "Email verified successfully!";
         setMessage(successMsg);
         setStatus("success");
-        
-        // 🔔 Notification
         toast.success(successMsg);
       } catch (error) {
         const errMsg =
@@ -35,14 +33,13 @@ const VerifyEmail = () => {
           "Verification failed. The link may be invalid or expired.";
         setMessage(errMsg);
         setStatus("error");
-        
-        // 🔔 Notification
         toast.error(errMsg);
       }
     };
     verify();
   }, [userId, token]);
 
+  // Auto-redirect on success
   useEffect(() => {
     if (status === "success") {
       const timer = setTimeout(() => {
@@ -53,9 +50,10 @@ const VerifyEmail = () => {
   }, [status, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-bg px-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
         
+        {/* LOADING STATE */}
         {status === "loading" && (
           <div className="py-8">
             <div className="relative mb-6">
@@ -69,6 +67,7 @@ const VerifyEmail = () => {
           </div>
         )}
 
+        {/* SUCCESS STATE */}
         {status === "success" && (
           <div className="py-6">
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
@@ -84,6 +83,7 @@ const VerifyEmail = () => {
           </div>
         )}
 
+        {/* ERROR STATE (Updated with Login Link) */}
         {status === "error" && (
           <div className="py-6">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -92,18 +92,26 @@ const VerifyEmail = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Verification Failed</h2>
             <p className="text-red-500 font-medium mb-6">{message}</p>
             
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
               <FaEnvelopeOpenText className="text-gray-400 text-2xl mx-auto mb-2" />
               <p className="text-gray-600 text-sm mb-3">
-                Didn't receive the email or link expired?
+                Link expired or invalid?
               </p>
               <Link
                 to="/resend-verification"
-                className="inline-block px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition-all text-sm"
+                className="inline-block px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700 transition-all text-sm w-full sm:w-auto"
               >
-                Resend Verification Link
+                Resend Link
               </Link>
             </div>
+
+            {/* ✅ NEW: Back to Login Link */}
+            <Link 
+              to="/login" 
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium text-sm transition-colors mt-2"
+            >
+              <FaArrowLeft className="text-xs" /> Back to Login
+            </Link>
           </div>
         )}
 
