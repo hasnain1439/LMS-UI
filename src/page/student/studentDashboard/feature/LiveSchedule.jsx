@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
 import toast from "react-hot-toast"; // 🔔 Import Toast
 
 // 👇 Import Standard Component
 import EmptyState from "../../../../component/EmptyState";
+import FaceCapture from "../../../../component/FaceCapture";
+import { UserContext } from "../../../../context/ContextApi";
 
 const LiveSchedule = ({ data }) => {
+  const { user } = useContext(UserContext);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
   if (!data || data.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-md p-6">
@@ -74,13 +79,16 @@ const LiveSchedule = ({ data }) => {
               {/* Right Side: Action Button */}
               <div className="mt-4 md:mt-0 w-full md:w-auto">
                 <button
-                  disabled={!isLive} 
+                  disabled={!isLive}
                   onClick={() => {
-                    if (!item.meetingLink) {
-                      toast.error("No meeting link provided. Contact instructor.");
-                    } else {
-                      window.open(item.meetingLink, "_blank");
+                    if (!isLive) return;
+                    if (!user) {
+                      toast.error("Please login to join the class.");
+                      return;
                     }
+                    // open face capture modal which will call backend for verification
+                    setSelectedSession(item);
+                    setCaptureOpen(true);
                   }}
                   className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all ${
                     isLive
@@ -90,7 +98,7 @@ const LiveSchedule = ({ data }) => {
                 >
                   {isLive ? (
                     <>
-                      <FaVideo /> Join Class
+                      <FaVideo /> Start Lecture
                     </>
                   ) : (
                     "Upcoming"
@@ -101,6 +109,21 @@ const LiveSchedule = ({ data }) => {
           );
         })}
       </div>
+      {/* Face capture modal */}
+      <FaceCapture
+        isOpen={captureOpen}
+        onClose={() => {
+          setCaptureOpen(false);
+          setSelectedSession(null);
+        }}
+        session={selectedSession}
+        onSuccess={(data) => {
+          // backend may return meetingLink and attendance details
+          if (data?.meetingLink) {
+            window.open(data.meetingLink, "_blank");
+          }
+        }}
+      />
     </div>
   );
 };
