@@ -1,132 +1,129 @@
-import React, { useEffect, useRef, useState } from "react";
-import { FaTimes, FaCamera } from "react-icons/fa";
+import React, { useRef, useState, useCallback } from "react";
+import Webcam from "react-webcam";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { FaCamera, FaTimes, FaSpinner } from "react-icons/fa";
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-export default function FaceCapture({ isOpen, onClose, session, onSuccess }) {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [stream, setStream] = useState(null);
+// ✅ Accept 'apiEndpoint' as a prop
+const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
+  const webcamRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) startCamera();
-
-    return () => stopCamera();
-  }, [isOpen]);
-
-  const startCamera = async () => {
-    try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      setStream(s);
-      if (videoRef.current) videoRef.current.srcObject = s;
-    } catch (err) {
-      console.error("Camera error:", err);
-      toast.error("Camera access is required for face verification");
-      onClose?.();
+  // Capture & Verify Function
+  const handleCapture = useCallback(async () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      toast.error("Camera not ready");
+      return;
     }
-  };
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
-      setStream(null);
-    }
-  };
-
-  const captureAndSend = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
     setLoading(true);
+    const toastId = toast.loading("Verifying Face...");
+
     try {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      // mirror to make it natural for user
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
-      if (!blob) throw new Error("Failed to capture image");
-
-      const file = new File([blob], "face.png", { type: "image/png" });
-      const fd = new FormData();
-      fd.append("faceImage", file);
-      if (session?.sessionId) fd.append("sessionId", session.sessionId);
-      if (session?.courseId) fd.append("courseId", session.courseId);
-
       const token = localStorage.getItem("token");
+      
+      // ✅ USE THE DYNAMIC ENDPOINT PASSED FROM PARENT
+      // If apiEndpoint is missing, fallback to teacher route (safety)
+      const url = apiEndpoint || "/api/lectures/startLectureWithFaceVerification";
+      
+      // Ensure full URL if using Vite proxy or relative path
+      const fullUrl = url.startsWith("http") ? url : `http://localhost:5000${url}`;
 
-      const res = await axios.post(
-        `${BACKEND_URL}/api/lectures/startLectureWithFaceVerification`,
-        fd,
+      const response = await axios.post(
+        fullUrl,
         {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : undefined,
-            "Content-Type": "multipart/form-data",
-          },
+          courseId: session.courseId, // Ensure session has courseId
+          scheduleId: session.id,
+          image: imageSrc,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      const data = res.data;
-      // Expect backend to return { success, meetingLink, attendance, matchPercentage }
-      if (data?.success) {
-        toast.success(data.message || "Face verified. Attendance recorded.");
-        onSuccess?.(data);
-      } else {
-        toast.error(data?.message || "Face verification failed.");
+      toast.success(response.data.message || "Verification Successful!", { id: toastId });
+      
+      if (onSuccess) {
+        onSuccess(response.data);
       }
+      onClose(); // Close modal on success
+
     } catch (error) {
-      console.error(error);
-      const msg = error.response?.data?.message || error.message || "Verification failed";
-      toast.error(msg);
+      console.error("Verification Error:", error);
+      const msg = error.response?.data?.error || "Verification Failed";
+      toast.error(msg, { id: toastId });
     } finally {
       setLoading(false);
-      stopCamera();
-      onClose?.();
     }
-  };
+  }, [webcamRef, session, onClose, onSuccess, apiEndpoint]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="w-full max-w-lg bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="flex items-center justify-between p-4 bg-gray-800">
-          <h3 className="text-white text-sm font-semibold">Face Verification</h3>
-          <button onClick={() => { stopCamera(); onClose?.(); }} className="text-white/80">
-            <FaTimes />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-fadeIn">
+        {/* Header */}
+        <div className="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            Face Verification
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <FaTimes size={20} />
           </button>
         </div>
 
-        <div className="relative bg-black h-72 flex items-center justify-center">
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100" />
-          <canvas ref={canvasRef} className="hidden" />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-48 h-64 border-2 border-white/30 rounded-[50%]" />
+        {/* Camera View */}
+        <div className="p-6 flex flex-col items-center">
+          <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-gray-200 shadow-inner">
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              className="w-full h-full object-cover transform scale-x-[-1]" // Mirror effect
+            />
+            {/* Overlay Frame */}
+            <div className="absolute inset-0 border-4 border-blue-500/30 rounded-lg pointer-events-none"></div>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-48 h-48 border-2 border-dashed border-white/50 rounded-full"></div>
+            </div>
           </div>
-        </div>
+          
+          <p className="text-sm text-gray-500 mt-4 text-center">
+            Please center your face in the circle and ensure good lighting.
+          </p>
 
-        <div className="flex items-center justify-center gap-6 p-5 bg-gray-900">
-          <button
-            onClick={() => { stopCamera(); onClose?.(); }}
-            className="px-4 py-2 rounded-md bg-gray-700 text-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={captureAndSend}
-            disabled={loading}
-            className="px-6 py-3 rounded-full bg-blue-600 text-white flex items-center gap-2"
-          >
-            <FaCamera /> {loading ? "Verifying..." : "Scan Face"}
-          </button>
+          {/* Action Buttons */}
+          <div className="mt-6 w-full flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCapture}
+              disabled={loading}
+              className={`flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? (
+                <>
+                  <FaSpinner className="animate-spin" /> Verifying...
+                </>
+              ) : (
+                <>
+                  <FaCamera /> Scan Face
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default FaceCapture;
