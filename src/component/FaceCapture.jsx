@@ -4,12 +4,23 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { FaCamera, FaTimes, FaSpinner } from "react-icons/fa";
 
-// ✅ Accept 'apiEndpoint' as a prop
 const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
   const webcamRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
-  // Capture & Verify Function
+  // ✅ Helper: Convert Base64 Image to Real File
+  const dataURLtoFile = (dataurl, filename) => {
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
   const handleCapture = useCallback(async () => {
     const imageSrc = webcamRef.current.getScreenshot();
     if (!imageSrc) {
@@ -22,32 +33,34 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
 
     try {
       const token = localStorage.getItem("token");
-      
-      // ✅ USE THE DYNAMIC ENDPOINT PASSED FROM PARENT
-      // If apiEndpoint is missing, fallback to teacher route (safety)
       const url = apiEndpoint || "/api/lectures/startLectureWithFaceVerification";
-      
-      // Ensure full URL if using Vite proxy or relative path
       const fullUrl = url.startsWith("http") ? url : `http://localhost:5000${url}`;
 
-      const response = await axios.post(
-        fullUrl,
-        {
-          courseId: session.courseId, // Ensure session has courseId
-          scheduleId: session.id,
-          image: imageSrc,
+      // 1. Convert Base64 to File
+      const imageFile = dataURLtoFile(imageSrc, "face-scan.jpg");
+
+      // 2. Prepare FormData (Required for Python/Multer)
+      const formData = new FormData();
+      formData.append("file", imageFile); // Must match backend parameter name
+      
+      // Append other data as text
+      if (session?.courseId) formData.append("courseId", session.courseId);
+      if (session?.id) formData.append("scheduleId", session.id);
+
+      // 3. Send Request
+      const response = await axios.post(fullUrl, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data", // Important!
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      });
 
       toast.success(response.data.message || "Verification Successful!", { id: toastId });
-      
+
       if (onSuccess) {
         onSuccess(response.data);
       }
-      onClose(); // Close modal on success
+      onClose();
 
     } catch (error) {
       console.error("Verification Error:", error);
@@ -63,6 +76,7 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-fadeIn">
+        
         {/* Header */}
         <div className="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
           <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -80,7 +94,7 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
               audio={false}
               ref={webcamRef}
               screenshotFormat="image/jpeg"
-              className="w-full h-full object-cover transform scale-x-[-1]" // Mirror effect
+              className="w-full h-full object-cover transform scale-x-[-1]"
             />
             {/* Overlay Frame */}
             <div className="absolute inset-0 border-4 border-blue-500/30 rounded-lg pointer-events-none"></div>
