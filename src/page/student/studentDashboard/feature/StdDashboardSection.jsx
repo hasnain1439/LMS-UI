@@ -58,7 +58,6 @@ function StdDashboardSection() {
     fetchData();
   }, []);
 
-  console.log("Dashboard Data:", dashboardData?.schedule);
   // --- LOADING STATE ---
   if (loading) return <LoadingSpinner />;
 

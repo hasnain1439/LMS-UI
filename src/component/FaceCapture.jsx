@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import Webcam from "react-webcam";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -8,7 +8,7 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
   const webcamRef = useRef(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Helper: Convert Base64 Image to Real File
+  // Helper: Convert Base64 to File
   const dataURLtoFile = (dataurl, filename) => {
     const arr = dataurl.split(",");
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -21,10 +21,15 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
     return new File([u8arr], filename, { type: mime });
   };
 
+  // ... (keep your imports)
+
   const handleCapture = useCallback(async () => {
     const imageSrc = webcamRef.current.getScreenshot();
-    if (!imageSrc) {
-      toast.error("Camera not ready");
+    if (!imageSrc) return toast.error("Camera not ready");
+
+    // Safety Check
+    if (!session?.courseId) {
+      alert("⚠️ Frontend Error: Course ID is missing.");
       return;
     }
 
@@ -33,35 +38,43 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
 
     try {
       const token = localStorage.getItem("token");
-      const url = apiEndpoint || "/api/lectures/startLectureWithFaceVerification";
-      const fullUrl = url.startsWith("http") ? url : `http://localhost:5000${url}`;
+      const url = apiEndpoint || "/api/attendance/markAttendance";
+      const fullUrl = url.startsWith("http")
+        ? url
+        : `http://localhost:5000${url}`;
 
-      // 1. Convert Base64 to File
       const imageFile = dataURLtoFile(imageSrc, "face-scan.jpg");
-
-      // 2. Prepare FormData (Required for Python/Multer)
       const formData = new FormData();
-      formData.append("file", imageFile); // Must match backend parameter name
-      
-      // Append other data as text
-      if (session?.courseId) formData.append("courseId", session.courseId);
-      if (session?.id) formData.append("scheduleId", session.id);
 
-      // 3. Send Request
+      // ✅ FIX: Send ONLY 'image' (Matches your error message)
+      formData.append("image", imageFile);
+
+      // ✅ Send ID
+      formData.append("courseId", session.courseId);
+
+      // ✅ Send Schedule ID if available
+      if (session.scheduleId || session.id) {
+        formData.append("scheduleId", session.scheduleId || session.id);
+      }
+
+      console.log("🚀 Sending Request:", {
+        url: fullUrl,
+        courseId: session.courseId,
+        fileType: "image",
+      });
+
       const response = await axios.post(fullUrl, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data", // Important!
+          "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.success(response.data.message || "Verification Successful!", { id: toastId });
-
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
+      toast.success(response.data.message || "Verification Successful!", {
+        id: toastId,
+      });
+      if (onSuccess) onSuccess(response.data);
       onClose();
-
     } catch (error) {
       console.error("Verification Error:", error);
       const msg = error.response?.data?.error || "Verification Failed";
@@ -71,23 +84,21 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
     }
   }, [webcamRef, session, onClose, onSuccess, apiEndpoint]);
 
+  // ... (rest of component)
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-fadeIn">
-        
-        {/* Header */}
         <div className="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             Face Verification
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
             <FaTimes size={20} />
           </button>
         </div>
-
-        {/* Camera View */}
         <div className="p-6 flex flex-col items-center">
           <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border-2 border-gray-200 shadow-inner">
             <Webcam
@@ -96,37 +107,23 @@ const FaceCapture = ({ isOpen, onClose, session, onSuccess, apiEndpoint }) => {
               screenshotFormat="image/jpeg"
               className="w-full h-full object-cover transform scale-x-[-1]"
             />
-            {/* Overlay Frame */}
             <div className="absolute inset-0 border-4 border-blue-500/30 rounded-lg pointer-events-none"></div>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-48 h-48 border-2 border-dashed border-white/50 rounded-full"></div>
-            </div>
           </div>
-          
-          <p className="text-sm text-gray-500 mt-4 text-center">
-            Please center your face in the circle and ensure good lighting.
-          </p>
-
-          {/* Action Buttons */}
           <div className="mt-6 w-full flex gap-3">
             <button
               onClick={onClose}
               disabled={loading}
-              className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all"
+              className="flex-1 px-4 py-2.5 border rounded-xl hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               onClick={handleCapture}
               disabled={loading}
-              className={`flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl flex justify-center gap-2 hover:bg-blue-700"
             >
               {loading ? (
-                <>
-                  <FaSpinner className="animate-spin" /> Verifying...
-                </>
+                <FaSpinner className="animate-spin" />
               ) : (
                 <>
                   <FaCamera /> Scan Face
