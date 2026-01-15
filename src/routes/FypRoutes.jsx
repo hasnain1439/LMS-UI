@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 // ---- Auth Pages ----
 import Registeration from "../page/auth/Registeration";
@@ -9,32 +10,31 @@ import ForgotPassword from "../page/auth/ForgetPassword";
 import ResetPassword from "../page/auth/ResetPassword";
 
 // ---- Teacher Dashboard Pages ----
-import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
-import QuizzesPage from "../page/adminDashboard/qizzes/index";
-import EnrollmentsPage from "../page/adminDashboard/enrollment/index.jsx";
-import CoursesPage from "../page/adminDashboard/courses";
-import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
-import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
 import TeacherDashboard from "../page/adminDashboard/dashboard";
-import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
+import DashboardHome from "../page/adminDashboard/dashboard/feature/DashboardHome";
+import CoursesPage from "../page/adminDashboard/courses";
 import CourseDetail from "../page/adminDashboard/courses/feature/CourseDetail";
+import QuizzesPage from "../page/adminDashboard/qizzes/index";
 import CreateQuiz from "../page/adminDashboard/qizzes/feature/CreateQuiz";
 import EditQuiz from "../page/adminDashboard/qizzes/feature/EditQuiz";
 import EditQuestion from "../page/adminDashboard/qizzes/feature/EditQuestion";
 import AddQuestion from "../page/adminDashboard/qizzes/feature/AddQuestion";
 import QuizDetails from "../page/adminDashboard/qizzes/feature/QuizDetails";
+import EnrollmentsPage from "../page/adminDashboard/enrollment/index.jsx";
+import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
+import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
+import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
 
 // ---- Student Dashboard Pages ----
 import StudentLayout from "../component/StudentLayout";
 import StdDashboard from "../page/student/studentDashboard/index.jsx";
 import MyCourses from "../page/student/myCourses/index.jsx";
+import MyCourseDetails from "../page/student/studentDashboard/feature/MyCourseDetails.jsx";
 import BrowseCourses from "../page/student/allCourses/index.jsx";
 import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx";
 import StudentQuizzes from "../page/student/studentQuizzies/index.jsx";
-import MyCourseDetails from "../page/student/studentDashboard/feature/MyCourseDetails.jsx";
 import TakeQuiz from "../page/student/studentQuizzies/feture/TakeQuiz.jsx";
 import QuizResult from "../page/student/studentQuizzies/feture/QuizResult.jsx";
-import { Toaster } from "react-hot-toast";
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -59,6 +59,7 @@ function FypRoutes() {
       children: [
         { index: true, element: <DashboardHome /> },
         { path: "courses", element: <CoursesPage /> },
+        { path: "course/:courseId", element: <CourseDetail /> },
         {
           path: "quizzes",
           children: [
@@ -80,7 +81,6 @@ function FypRoutes() {
         { path: "profile", element: <ProfilePage /> },
         { path: "update-profile", element: <UpdateProfile /> },
         { path: "change-password", element: <ChangePassword /> },
-        { path: "course/:courseId", element: <CourseDetail /> },
       ],
     },
 
@@ -101,10 +101,9 @@ function FypRoutes() {
           element: <MyCourses />,
           handle: { title: "My Courses" },
         },
-        // ✅ NEW ROUTE: View Details for Enrolled Course
         {
           path: "my-course/:courseId",
-          element: <MyCourseDetails />, // Using the existing CourseDetails component
+          element: <MyCourseDetails />,
           handle: { title: "My Course Detail" },
         },
         // 3. Catalog (Browse New Courses)
@@ -113,7 +112,7 @@ function FypRoutes() {
           element: <BrowseCourses />,
           handle: { title: "Browse Courses" },
         },
-        // 4. Public Course Details (Before Enrolling)
+        // 4. Public Course Details
         {
           path: "course-details/:courseId",
           element: <CourseDetails />,

@@ -6,9 +6,10 @@ import {
   FaList,
   FaClipboardCheck,
   FaUser,
+  FaCalendarCheck, // ✅ Added Icon for Attendance
 } from "react-icons/fa";
-import Sidebar from "../component/Sidebar"; // ✅ Shared Sidebar Component
-import Topbar from "../component/Topbar";   // ✅ Shared Topbar Component
+import Sidebar from "../component/Sidebar"; 
+import Topbar from "../component/Topbar";   
 
 function StudentLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,6 +23,7 @@ function StudentLayout() {
     if (path.includes("my-courses")) title = "My Courses";
     else if (path.includes("catalog")) title = "Course Catalog";
     else if (path.includes("quizzes")) title = "My Quizzes";
+    else if (path.includes("attendance")) title = "My Attendance"; // ✅ Added Title Logic
     else if (path.includes("profile")) title = "Student Profile";
 
     document.title = `${title} | LMS`;
@@ -44,11 +46,10 @@ function StudentLayout() {
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
         menuItems={studentNavItems}
-        role="student" // Optional: used for role-based styling in Sidebar
+        role="student"
       />
 
       {/* 2. Main Content Wrapper */}
-      {/* lg:ml-64 ensures content sits to the right of the fixed sidebar on desktop */}
       <div className="flex flex-col flex-1 w-full lg:ml-64 transition-all duration-300 relative">
         
         {/* Topbar */}
