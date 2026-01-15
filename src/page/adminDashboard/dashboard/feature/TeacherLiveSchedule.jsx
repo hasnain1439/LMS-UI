@@ -1,51 +1,35 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
 import EmptyState from "../../../../component/EmptyState";
 import toast from "react-hot-toast";
+import FaceCapture from "../../../../component/FaceCapture"; // ✅ Import FaceCapture
+import { UserContext } from "../../../../context/ContextApi";
 
 const TeacherLiveSchedule = ({ data }) => {
-  
-  // ✅ Function to call the Verification API
-  const handleStartClass = async (courseId, scheduleId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please login first.");
-        return;
-      }
+  const { user } = useContext(UserContext);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
 
-      // ⚠️ DUMMY IMAGE: Replace this with real webcam logic later
-      const dummyImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=";
+  // ✅ Step 1: Handle Click - Open Face Scanner
+  const handleStartClassClick = (item) => {
+    // Basic Checks
+    const status = item.status ? item.status.trim().toLowerCase() : "";
+    if (status !== "live now") return;
 
-      const loadingToast = toast.loading("Verifying Face...");
-
-      const response = await fetch("http://localhost:5000/api/lectures/startLectureWithFaceVerification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          courseId: courseId,
-          scheduleId: scheduleId,
-          image: dummyImage
-        })
-      });
-
-      const result = await response.json();
-      toast.dismiss(loadingToast);
-
-      if (response.ok) {
-        toast.success("Verification Successful!");
-        window.open(result.meetingLink, "_blank");
-      } else {
-        toast.error(result.error || "Verification Failed");
-      }
-
-    } catch (error) {
-      console.error("Error starting class:", error);
-      toast.error("Network error. Check console.");
+    if (!item.courseId) {
+      toast.error("Error: Missing Course ID");
+      return;
     }
+
+    // Prepare data for the modal
+    setSelectedSession({
+      courseId: item.courseId,
+      scheduleId: item.id || item.scheduleId,
+      title: item.title,
+      isTeacher: true // Optional flag if your FaceCapture needs it
+    });
+
+    setCaptureOpen(true); // Open the Modal
   };
 
   if (!data || data.length === 0) {
@@ -70,12 +54,14 @@ const TeacherLiveSchedule = ({ data }) => {
       {/* Schedule List */}
       <div className="flex flex-col gap-4">
         {data.map((item) => {
-          // Robust status check
           const status = item.status ? item.status.trim().toLowerCase() : "";
           const isLive = status === "live now";
 
           return (
-            <div key={item.id} className="flex flex-col md:flex-row items-center justify-between p-4 rounded-xl border border-gray-200">
+            <div key={item.id} className={`flex flex-col md:flex-row items-center justify-between p-4 rounded-xl border transition-all ${
+                isLive ? "border-blue-500 bg-blue-50/50" : "border-gray-200"
+              }`}>
+              
               <div className="flex items-center gap-6 w-full md:w-auto">
                 <div className="flex flex-col items-center justify-center min-w-[60px] text-gray-600">
                   <div className="flex items-center gap-1 text-sm font-semibold">
@@ -100,11 +86,11 @@ const TeacherLiveSchedule = ({ data }) => {
               {/* ACTION BUTTON */}
               <div className="mt-4 md:mt-0 w-full md:w-auto">
                 <button
-                  // ✅ FIX: Sending item.courseId properly now
-                  onClick={() => handleStartClass(item.courseId, item.id)}
+                  disabled={!isLive}
+                  onClick={() => handleStartClassClick(item)}
                   className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold transition-all ${
                     isLive
-                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg cursor-pointer"
+                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 shadow-lg cursor-pointer active:scale-95"
                       : "bg-gray-100 border border-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
                 >
@@ -115,6 +101,39 @@ const TeacherLiveSchedule = ({ data }) => {
           );
         })}
       </div>
+
+      {/* ✅ Step 2: Face Verification Modal */}
+      {selectedSession && (
+        <FaceCapture
+          isOpen={captureOpen}
+          onClose={() => {
+            setCaptureOpen(false);
+            setSelectedSession(null);
+          }}
+          session={selectedSession}
+          // ✅ Correct Endpoint for Teachers
+          apiEndpoint="/api/lectures/startLectureWithFaceVerification"
+          onSuccess={(response) => {
+            const link = response.meetingLink || response.link;
+            
+            if (link) {
+              // ✅ POPUP BLOCKER FIX:
+              // 1. Try to open in a new tab
+              const newTab = window.open(link, "_blank");
+
+              // 2. If blocked (newTab is null or closed immediately), force redirect in current tab
+              if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+                toast.loading("Redirecting to class...", { duration: 3000 });
+                setTimeout(() => {
+                   window.location.href = link;
+                }, 1000);
+              }
+            } else {
+              toast.success("Class started! Please refresh for link.");
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

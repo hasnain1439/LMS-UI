@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { FaCalendarAlt, FaVideo, FaRegClock, FaExclamationCircle } from "react-icons/fa";
+import { FaCalendarAlt, FaVideo, FaRegClock } from "react-icons/fa";
 import toast from "react-hot-toast"; 
 import { UserContext } from "../../../../context/ContextApi";
 import FaceCapture from "../../../../component/FaceCapture";
@@ -30,7 +30,7 @@ const LiveSchedule = ({ data }) => {
       return;
     }
 
-    // 3. 🛡️ Data Integrity Check (Crucial for FaceCapture)
+    // 3. 🛡️ Data Integrity Check
     if (!item.courseId) {
       console.error("❌ Data Error: 'courseId' is missing in this item:", item);
       toast.error("System Error: Course ID is missing. Cannot verify.");
@@ -38,10 +38,9 @@ const LiveSchedule = ({ data }) => {
     }
 
     // 4. Prepare Session Object
-    // We normalize the ID here to ensure FaceCapture gets what it needs
     const sessionData = {
       courseId: item.courseId,
-      scheduleId: item.scheduleId || item.id, // Handles both naming conventions
+      scheduleId: item.scheduleId || item.id, 
       title: item.title
     };
 
@@ -137,13 +136,22 @@ const LiveSchedule = ({ data }) => {
             setSelectedSession(null);
           }}
           session={selectedSession}
-          // ✅ Correct Endpoint for Students
           apiEndpoint="/api/attendance/markAttendance" 
           onSuccess={(response) => {
-            // ✅ Handles both direct link string or object with meetingLink
             const link = response.meetingLink || response.link;
+            
             if (link) {
-              window.open(link, "_blank");
+              // ✅ POPUP BLOCKER FIX:
+              // 1. Try to open in a new tab
+              const newTab = window.open(link, "_blank");
+
+              // 2. If blocked (newTab is null), force open in current tab
+              if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+                toast.loading("Redirecting to class...", { duration: 3000 });
+                setTimeout(() => {
+                   window.location.href = link;
+                }, 1000);
+              }
             } else {
               toast.success("Attendance marked! Please refresh to see class link.");
             }
