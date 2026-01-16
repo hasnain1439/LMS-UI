@@ -1,31 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-// ✅ Define Backend URL
+// ✅ 1. Reliable Fallback (UI Avatars generates initials)
+const FALLBACK_IMAGE = "https://ui-avatars.com/api/?name=User&background=random&color=fff";
 const BACKEND_URL = "http://localhost:5000";
 
 const UserAvatar = ({ src, alt, className }) => {
-  // 1. HELPER: Determine the correct image source
-  const getImageSrc = (url) => {
-    // A. If data is missing, loading, or explicitly "undefined", show placeholder
-    if (!url || url === "undefined" || url === "null") {
-      return "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+  const [imgSrc, setImgSrc] = useState(FALLBACK_IMAGE);
+
+  // ✅ 2. Logic to determine initial image source
+  useEffect(() => {
+    if (!src || src === "undefined" || src === "null") {
+      setImgSrc(FALLBACK_IMAGE);
+    } else if (src.startsWith("http") || src.startsWith("blob")) {
+      setImgSrc(src);
+    } else {
+      // It's a relative path from backend
+      setImgSrc(`${BACKEND_URL}${src}`);
     }
-
-    // B. If it's a full URL (Google/Cloudinary), use it
-    if (url.startsWith("http") || url.startsWith("blob")) return url;
-
-    // C. If it's a local file, add backend URL + timestamp to force refresh
-    return `${BACKEND_URL}${url}?t=${new Date().getTime()}`;
-  };
+  }, [src]);
 
   return (
     <img
-      src={getImageSrc(src)}
+      src={imgSrc}
       alt={alt || "User Avatar"}
       className={className}
-      // Safety net: If the backend image fails to load, switch to placeholder
+      // ✅ 3. Loop Protection: Only switch to fallback if not already there
       onError={(e) => {
-        e.target.src = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+        if (e.target.src !== FALLBACK_IMAGE) {
+          e.target.src = FALLBACK_IMAGE;
+          setImgSrc(FALLBACK_IMAGE); // Update state to reflect change
+        }
       }}
     />
   );

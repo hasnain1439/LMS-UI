@@ -49,7 +49,7 @@ const LiveSchedule = ({ data }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+    <div className="bg-white rounded-xl shadow-md p-6 ">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">

@@ -24,6 +24,7 @@ import EnrollmentsPage from "../page/adminDashboard/enrollment/index.jsx";
 import ProfilePage from "../page/adminDashboard/profile/feature/ProfilePage";
 import UpdateProfile from "../page/adminDashboard/profile/feature/UpdateProfile";
 import ChangePassword from "../page/adminDashboard/profile/feature/ChangePassword";
+import TeacherAttendance from "../page/adminDashboard/teacherAttendance/TeacherAttendance.jsx"; // ✅ Import Teacher Attendance Page
 
 // ---- Student Dashboard Pages ----
 import StudentLayout from "../component/StudentLayout";
@@ -35,6 +36,7 @@ import CourseDetails from "../page/student/allCourses/feature/CourseDetails.jsx"
 import StudentQuizzes from "../page/student/studentQuizzies/index.jsx";
 import TakeQuiz from "../page/student/studentQuizzies/feture/TakeQuiz.jsx";
 import QuizResult from "../page/student/studentQuizzies/feture/QuizResult.jsx";
+import StudentAttendance from "../page/student/studentAttendance/StudentAttendance.jsx"; // ✅ Import Student Attendance Page
 
 function FypRoutes() {
   const router = createBrowserRouter([
@@ -78,6 +80,8 @@ function FypRoutes() {
           ],
         },
         { path: "enrollments", element: <EnrollmentsPage /> },
+        // ✅ Teacher Attendance Report Route
+        { path: "attendance", element: <TeacherAttendance /> },
         { path: "profile", element: <ProfilePage /> },
         { path: "update-profile", element: <UpdateProfile /> },
         { path: "change-password", element: <ChangePassword /> },
@@ -134,7 +138,13 @@ function FypRoutes() {
           element: <QuizResult />,
           handle: { title: "Quiz Results" },
         },
-        // 6. Profile
+        // 6. ✅ Student Attendance History Route
+        {
+          path: "attendance",
+          element: <StudentAttendance />,
+          handle: { title: "My Attendance" },
+        },
+        // 7. Profile
         {
           path: "profile",
           element: <ProfilePage />,
